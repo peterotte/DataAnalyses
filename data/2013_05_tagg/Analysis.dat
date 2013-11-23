@@ -1,0 +1,10 @@
+#Mk2 Data Format
+RawDataFormat: 2
+
+ElectronBeamEnergy: 450.1
+
+CutHitsOutOfRange: -1.
+
+#paths with / at the end!
+OutputPath: /datapool/2013_04_pi0/taggeff/output/
+InputPathRawData: /datapool/2013_04_pi0/taggeff/

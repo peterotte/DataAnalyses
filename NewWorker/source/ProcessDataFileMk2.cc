@@ -148,6 +148,12 @@ int ProcessDataFileMk2() {
                              }
 
                          } //Scaler block end
+                         else if (ptrN[i+bi+ei].AsInt == 0xfdfdfdfd) { //EPICS Block start
+                             int EPICSRecordLength = ptrN[i+bi+ei+12].AsADC.Ch; //This should give the length in bytes of the complete EPICS block (including header and info blocks)
+                             //printf("INFO: Length of EPICS block: %d\n",EPICSRecordLength);
+                             ei += EPICSRecordLength/sizeof(int)+1;
+                             //Basicly: Skip EPICS Block
+                         }  //EPICS Block end
                          else if (ptrN[i+bi+ei].AsInt == 0xefefefef) { //Error block start
                              AnzahlFehlerBlocks++;
                              EventBlock.NumberErrorBlocks++;
@@ -170,13 +176,28 @@ int ProcessDataFileMk2() {
                              } else if (ptrN[(i+bi+ei)].AsADC.Ch == 2000) {
                                  TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value;
                              }
-                             ///hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
+                             hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
 
                              int AktADCDetectorID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).DetectorID;
                              int AktADCElementID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).ElementID;
                              int AktADCTypeID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).TypeID; //0 = ADC, 1 = TDC
                              int AktADCValue = ptrN[(i+bi+ei)].AsADC.Value;
                              int AktADCMultiValue = ptrN[(i+bi+ei+1)].AsADC.Value - ptrN[(i+bi+ei)].AsADC.Value; //Signal - Pedestal
+
+                             //CB ADC: Debug single ADC Sums
+                             if ( (AktADCDetectorID == 1) /*CB*/ && (AktADCTypeID == 0) /*ADC information*/ ) {
+                                 hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
+                                 hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
+                                 hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
+                             }
+
+                             //MWPC ADC: Debug single ADC Sums
+                             if ( ( (ptrN[(i+bi+ei)].AsADC.Ch >= 5000) && (ptrN[(i+bi+ei)].AsADC.Ch < 5600) ) /*WC ADC*/ ) {
+                                 hMWPCChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, ptrN[(i+bi+ei)].AsADC.Ch-5000);
+                                 hMWPCChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, ptrN[(i+bi+ei+1)].AsADC.Ch-5000);
+                                 hMWPCChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, ptrN[(i+bi+ei+2)].AsADC.Ch-5000);
+                                 ei = ei+2;
+                             }
 
                              if (AktADCDetectorID != -1) { //Only, if the ADC value is defined by configuration files.
                                  //Now check, whether the element is already represented with some data (ADC/TDC) in this Event(TempEvent)
@@ -199,9 +220,10 @@ int ProcessDataFileMk2() {
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCValue;
                                              }
                                          } else {
-                                             Printf("ERROR: ADC value occured where it is not expected.");
+                                             Printf("ERROR: ADC value occured where it is not expected. EventID: %d",AktEventNr );
                                              Printf("       Details: %d %d %d %d", AktADCDetectorID, AktADCElementID, AktADCTypeID, AktADCValue);
-                                             Printf("       %8x", ptrN[(i+bi+ei)].AsInt);
+                                             printf("       ADC Value already assigned: %d\n",TempEvent.HitElements.at(HitPresent).RawADC);
+                                             Printf("       32-bit Raw: %8x  FilePointer: %8x", ptrN[(i+bi+ei)].AsInt, (i+bi+ei)*sizeof(int));
                                              AnzahlDateiFehler++;
                                          }
                                          break;

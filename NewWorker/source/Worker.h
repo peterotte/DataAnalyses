@@ -133,6 +133,9 @@ TH2D *hTaggerTime, *hCBTime, *hPIDTime; //Calibrated TDC information goes here
 TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits; //Number of Multihits per Event before any cut
 TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
+TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
+
+TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 TH2D *hCBChADC, *hPIDChADC; //Raw ADC information is put here
 TH2D *hPIDChADCCutTDCRequired; //RawADC information, but only, if TDC hit was present
 TH2D *hCBChEnergy, *hPIDChEnergy; //Calibrated ADC information is put here
@@ -182,19 +185,31 @@ int InitCalibHistograms() {
     gROOT->cd("RawDataDetails");
     //Overview: All Scalers and ADCs
     hADCOverview = new TH1D("hADCOverview","hADCOverview",10000,0,66000);
-    hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 1000, 0, 1000);
+    hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
     //Error checks
     hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);
 
     gDirectory->mkdir("EventID");
     gDirectory->cd("EventID");
     //ErrorChecking for CBADCs
-    hCBADCHits_VS_EventID = new TH2D("CBADCHits_VS_EventID", "CBADCHits_VS_EventID", (2000000./1000.), 0, 2000000, NCBElements, 0, NCBElements);
-    hCBTDCHits_VS_EventID = new TH2D("CBTDCHits_VS_EventID", "CBTDCHits_VS_EventID", (2000000./1000.), 0, 2000000, NCBElements, 0, NCBElements);
-    hCBHits_VS_EventID = new TH2D("CBHits_VS_EventID", "CBHits_VS_EventID", (2000000./1000.), 0, 2000000, NCBElements, 0, NCBElements);
+    hCBADCHits_VS_EventID = new TH2D("CBADCHits_VS_EventID", "CBADCHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
+    hCBTDCHits_VS_EventID = new TH2D("CBTDCHits_VS_EventID", "CBTDCHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
+    hCBHits_VS_EventID = new TH2D("CBHits_VS_EventID", "CBHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
     hCBDeletedHits_VS_EventID_DueEnergy = new TH2D("hCBDeletedHits_VS_EventID_DueEnergy", "hCBDeletedHits_VS_EventID_DueEnergy", 2000, 0, 2000000, NCBElements, 0, NCBElements);
     hCBDeletedHits_VS_EventID_DueTime = new TH2D("hCBDeletedHits_VS_EventID_DueTime", "hCBDeletedHits_VS_EventID_DueTime", 2000, 0, 2000000, NCBElements, 0, NCBElements);
     hCommonCounter_VS_EventID = new TH2D("hCommonCounter", "hCommonCounter", 2000, 0, 2000000, 100, -2, 2.);
+
+    gROOT->cd("RawDataDetails");
+    gDirectory->mkdir("ADC");
+    gDirectory->cd("ADC");
+    //Uncalibrated CB ADC, their single sums
+    hCBChADCPart1 = new TH2D("hCBChADCPart1", "hCBChADCPart1", 1000, -100, 10000, NCBElements, 0, NCBElements);//Raw ADC information, 1st sum, pedestal
+    hCBChADCPart2 = new TH2D("hCBChADCPart2", "hCBChADCPart2", 1000, -100, 10000, NCBElements, 0, NCBElements);//Raw ADC information, 2nd sum, signal
+    hCBChADCPart3 = new TH2D("hCBChADCPart3", "hCBChADCPart3", 1000, -100, 10000, NCBElements, 0, NCBElements);//Raw ADC information, 3rd sum, tail
+    //Uncalibrated MWPC ADC, their single sums
+    hMWPCChADCPart1 = new TH2D("hMWPCChADCPart1", "hMWPCChADCPart1", 1000, -100, 100000, 600, 0, 600);//Raw ADC information, 1st sum, pedestal
+    hMWPCChADCPart2 = new TH2D("hMWPCChADCPart2", "hMWPCChADCPart2", 1000, -100, 100000, 600, 0, 600);//Raw ADC information, 2nd sum, signal
+    hMWPCChADCPart3 = new TH2D("hMWPCChADCPart3", "hMWPCChADCPart3", 1000, -100, 100000, 600, 0, 600);//Raw ADC information, 3rd sum, tail
 
     gROOT->cd("RawDataDetails");
     gDirectory->mkdir("TDC");

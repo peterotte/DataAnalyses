@@ -1,0 +1,6 @@
+# Information for TaggEff Analysis
+
+InputPath:   /datapool/2011_02_pi0/taggeff/output
+OutputPath:  /datapool/2011_02_pi0/taggeff/output/results
+
+TaggerClockSpeed: 2071.6

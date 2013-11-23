@@ -1,0 +1,48 @@
+data
+- Kalibrationsdateien von allen Strahlzeiten: Sep 2010, Feb 2011, Mai 2013
+
+NewWorker
+- Bereichnet einen normalen Run oder TaggEff Run
+- Parameter:
+            FileID
+            -b ProgramBatchMode
+            -c ProgramOnlyFileCheckMode
+            -s ProgramSaveSpectraMode
+            -n ProgramNoTBrowserMode und ProgramBatchMode
+- schreibt die histogrammierten Ergebnisse als root Datei nach /datapool in die jeweiligen
+  Verzeichnisse unter output
+
+AR
+- Ruft den NewWorker/build/bin/NewWorker auf. 2 Parameter: Start und End FileID
+
+
+
+NewTaggEff
+- Berechnet die TaggEff für eine Beamtime, zuerst muss NewWorker diese Dateien erzeugt haben.
+- Parameter: 
+            SelectedBeamtime (0, 1, 2)
+            -b    ProgramBatchMode
+            -d    ProgramDebugMode
+            -new  WriteAbsTaggEffNew
+            -r    ReplaceRunMetaInfoFile
+
+
+analysis
+- Combined: 
+  - beampolshape: Gamma-Strahlpolisation (Helizitätsübertrag)
+  - step0: Fasst die Analysierten Dateien Strahlzeitweise zusammen und schreibt sie 
+           nach /datapool in die jeweiligen Unterverzeichnisse als sum.root
+  - step1: Zufälligen Untergrund vom Signal abziehen und 
+           Normierungsfaktoren anbringen
+  - step2: Darstellung
+- Theory: Daten von MAID, MAIDDMT und SAID herunterladen und in root Dateien verpacken
+
+CompareResults
+- Root Makros, zum Vergleichen den eigenen Daten mit Svens und Paulines
+
+
+-----------------------------------------------------------------
+
+Rohdaten und analysierte Daten liegen unter /datapool
+
+Die Strahlzeit 2013 war im Mai, nicht April

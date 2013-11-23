@@ -1,0 +1,25 @@
+# File for Trigger Definitions
+
+NumberOfElements: 12
+
+
+#                                 ScalerCh
+ExperimentLiveCounter:	305
+UngatedLiveCounter:		304
+TaggerLiveCounter:		305
+
+
+#               ScalerCh
+ScalerElement:  300
+ScalerElement:  301
+ScalerElement:  302
+ScalerElement:  303
+ScalerElement:  304
+ScalerElement:  305
+ScalerElement:  306
+ScalerElement:  307
+ScalerElement:  308
+ScalerElement:  309
+ScalerElement:  310
+ScalerElement:  311
+
