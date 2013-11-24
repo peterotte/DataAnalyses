@@ -41,8 +41,8 @@
 #include <Worker.h>
 #include <ReadCalibrationFiles.cc>
 #include <ReadRawDataFile.cc>
-#include <ProcessDataFileMk1.cc>
 #include <ProcessDataFileMk2.cc>
+#include <ProcessDataFileMk1.cc>
 
 //-----------------------------------------------------------------------------
 
@@ -210,8 +210,8 @@ int main(int argc, char **argv)
     ReadConfigurationFiles();
 
     PrepareReadRawData();
+    //Now we have read the first amount of data from disc. Do something with the data!
 
-    //-------------- Ok nun eingelesen, mache etwas mit den Daten
     //Prevent Root from showing a big info screen.
     const int NArgs = 2;
     int Myargc = NArgs;

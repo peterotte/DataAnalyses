@@ -1,9 +1,9 @@
-//#include <ConvertionRaw2Units.cc>
-//#include <ExportTreeFile.cc>
-//#include <CBClusterFinder.cc>
-//#include <FillNHitsHistograms.cc>
-//#include <CBPID_MarkChargedClusters.cc>
-//#include <PhysicsAnalysis.cc>
+#include <ConvertionRaw2Units.cc>
+#include <ExportTreeFile.cc>
+#include <CBClusterFinder.cc>
+#include <FillNHitsHistograms.cc>
+#include <CBPID_MarkChargedClusters.cc>
+#include <PhysicsAnalysis.cc>
 
 
 int ProcessDataFileMk2() {
@@ -175,6 +175,8 @@ int ProcessDataFileMk2() {
                                  TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value;
                              } else if (ptrN[(i+bi+ei)].AsADC.Ch == 2000) {
                                  TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value;
+                             } else if (ptrN[(i+bi+ei)].AsADC.Ch == 29192) {
+                                 TempEvent.ReferenceRawTDCPbWO = ptrN[(i+bi+ei)].AsADC.Value;
                              }
                              hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
 
@@ -210,10 +212,10 @@ int ProcessDataFileMk2() {
 
                                  if (HitPresent >= 0) { //Information about this elem does already exist
                                      switch (AktADCTypeID) {
-                                     case 0: //ADC
+                                     case ADCTypeIDADC: //ADC
                                          if (TempEvent.HitElements.at(HitPresent).RawADC == NoValuePresent) {
                                              //Add ADC information to existing TDC information
-                                             if (TempEvent.HitElements.at(HitPresent).DetectorID == 1) { //Activate Multihit ADC for CB
+                                             if (TempEvent.HitElements.at(HitPresent).DetectorID == DetectorIDCB) { //Activate Multihit ADC for CB
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCMultiValue;
                                                  ei = ei+2; //Skip the next two entries because the are already included
                                              } else {
@@ -227,7 +229,7 @@ int ProcessDataFileMk2() {
                                              AnzahlDateiFehler++;
                                          }
                                          break;
-                                     case 1: //TDC
+                                     case ADCTypeIDTDC: //TDC
                                          TempEvent.HitElements.at(HitPresent).RawTDC.push_back(AktADCValue); //Add TDC information to existing ADC value
                                          break;
                                      default: Printf("Error during analysis. Unknown ADCType.");

@@ -44,6 +44,7 @@ typedef struct TEvent {
     int HelicityBit;
     int ReferenceRawTDCTagger; //TDC ch 1400
     int ReferenceRawTDCCB;     //TDC ch 2000
+    int ReferenceRawTDCPbWO;   //TDC ch 29192
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -67,7 +68,9 @@ int Clear_TempEvent() {
     TempEvent.HelicityBit = -1;
     TempEvent.ReferenceRawTDCTagger = NoValuePresent;
     TempEvent.ReferenceRawTDCCB = NoValuePresent;
+    TempEvent.ReferenceRawTDCPbWO = NoValuePresent;
     TempEvent.HitElements.clear();
+    TempEvent.CBClusters.clear();
 }
 
 TEventBlock EventBlock; //Here the ADC and scaler info since last scaler read gets saved
@@ -123,28 +126,28 @@ TH1D *hLiveTimeAccum;
 TH1D *hTaggerScalerAccumPhotonsLTCorrected, *hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff;
 
 //ADCs TDCs
-TH2D *hCBADCHits_VS_EventID, *hCBTDCHits_VS_EventID, *hCBHits_VS_EventID;
+TH2D *hCBADCHits_VS_EventID, *hCBTDCHits_VS_EventID, *hCBHits_VS_EventID, *hBaFHits_VS_EventID;
 TH2D *hCBDeletedHits_VS_EventID_DueEnergy, *hCBDeletedHits_VS_EventID_DueTime;
 TH2D *hCommonCounter_VS_EventID;
 
-TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC; //Raw TDC information is put here
-TH2D *hTaggerTime, *hCBTime, *hPIDTime; //Calibrated TDC information goes here
+TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC, *hBaFChTDC, *hTAPSVetoChTDC, *hPbWOChTDC; //Raw TDC information is put here
+TH2D *hTaggerTime, *hCBTime, *hPIDTime, *hBaFTime, *hTAPSVetoTime, *hPbWOTime; //Calibrated TDC information goes here
 
-TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits; //Number of Multihits per Event before any cut
-TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
+TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits, *hPbWONMultiHits; //Number of Multihits per Event before any cut
+TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts, *hPbWONMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
 TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
 
 TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
-TH2D *hCBChADC, *hPIDChADC; //Raw ADC information is put here
+TH2D *hCBChADC, *hPIDChADC, *hBaFChADC, *hTAPSVetoChADC, *hPbWOChADC; //Raw ADC information is put here
 TH2D *hPIDChADCCutTDCRequired; //RawADC information, but only, if TDC hit was present
-TH2D *hCBChEnergy, *hPIDChEnergy; //Calibrated ADC information is put here
+TH2D *hCBChEnergy, *hPIDChEnergy, *hBaFChEnergy, *hTAPSVetoChEnergy, *hPbWOChEnergy; //Calibrated ADC information is put here
 TH2D *hPIDChEnergyUncut; //All raw ADC converted into Energy, no cuts at all
 
 TH2D *PIDCorrelation;
 TH2D *hCB_DeltaPhi; //Difference between all hits (clusters) in CB and PID
 
-TH1D *hTaggerNHits, *hCBNHits, *hPIDNHits;
+TH1D *hTaggerNHits, *hCBNHits, *hPIDNHits, *hBaFNHits, *hTAPSVetoNHits, *hPbWONHits;
 TH1D *CBNCluster;
 TH2D *CBClusterEnergy_VS_CBNElemCluster; //Number of participation elements in a cluster vs ClusterEnergy
 
@@ -198,6 +201,8 @@ int InitCalibHistograms() {
     hCBDeletedHits_VS_EventID_DueEnergy = new TH2D("hCBDeletedHits_VS_EventID_DueEnergy", "hCBDeletedHits_VS_EventID_DueEnergy", 2000, 0, 2000000, NCBElements, 0, NCBElements);
     hCBDeletedHits_VS_EventID_DueTime = new TH2D("hCBDeletedHits_VS_EventID_DueTime", "hCBDeletedHits_VS_EventID_DueTime", 2000, 0, 2000000, NCBElements, 0, NCBElements);
     hCommonCounter_VS_EventID = new TH2D("hCommonCounter", "hCommonCounter", 2000, 0, 2000000, 100, -2, 2.);
+    //ErrorChecking for BaF
+    hBaFHits_VS_EventID = new TH2D("BaFHits_VS_EventID", "BaFHits_VS_EventID", (3000000./1000.), 0, 3000000, NBaFElements, 0, NBaFElements);
 
     gROOT->cd("RawDataDetails");
     gDirectory->mkdir("ADC");
@@ -211,33 +216,27 @@ int InitCalibHistograms() {
     hMWPCChADCPart2 = new TH2D("hMWPCChADCPart2", "hMWPCChADCPart2", 1000, -100, 100000, 600, 0, 600);//Raw ADC information, 2nd sum, signal
     hMWPCChADCPart3 = new TH2D("hMWPCChADCPart3", "hMWPCChADCPart3", 1000, -100, 100000, 600, 0, 600);//Raw ADC information, 3rd sum, tail
 
-    gROOT->cd("RawDataDetails");
-    gDirectory->mkdir("TDC");
-    gDirectory->cd("TDC");
-    //Uncalibrated TDC
-    hTaggerChTDC = new TH2D("hTaggerChTDC", "hTaggerChTDC", 200, -10000, 10000, NTaggerElements, 0, NTaggerElements);
-    hCBChTDC = new TH2D("hCBChTDC", "hCBChTDC", 200, -10000, 10000, NCBElements, 0, NCBElements);
-    hPIDChTDC = new TH2D("hPIDChTDC", "hPIDChTDC", 200, -10000, 10000, NPIDElements, 0, NPIDElements);
-
-    gROOT->mkdir("Calibrated");
+    gROOT->mkdir("Calibration");
     gROOT->cd("Calibrated");
     gDirectory->mkdir("Trigger");
     gDirectory->cd("Trigger");
     hTriggerScalerAccum = new TH1D("TriggerScalerAccum", "TriggerScalerAccum", 256, 0, 256); hTriggerScalerAccum->Sumw2();
     hLiveTimeAccum = new TH1D("LiveTimeAccum", "LiveTimeAccum", 3, 0, 3); hLiveTimeAccum->Sumw2(); //Bin 1: Ungated, Bin 2: CB Gated, Bin3: Tagger gated
 
-    gROOT->cd("Calibrated");
+    gROOT->cd("Calibration");
     gDirectory->mkdir("Tagger");
     gDirectory->cd("Tagger");
+    hTaggerChTDC = new TH2D("hTaggerChTDC", "hTaggerChTDC", 200, -10000, 10000, NTaggerElements, 0, NTaggerElements); //Uncalibrated TDC
     hTaggerScalerAccum = new TH1D("TaggerScalerAccum", "TaggerScalerAccum", NTaggerElements, 0, NTaggerElements); hTaggerScalerAccum->Sumw2(); //Tagger und Trigger Scaler
     hTaggerTime = new TH2D("hTaggerTime", "hTaggerTime", 2000, -1000, 1000, NTaggerElements, 0, NTaggerElements);//Calibrated Time
     hTaggerNMultiHits = new TH2D("hTaggerNMultiHits", "hTaggerNMultiHits", 10,0,10, NTaggerElements, 0, NTaggerElements); //Number of Multihits per Event | Without cuts, raw signal
     hTaggerNMultiHitsCuts = new TH2D("hTaggerNMultiHitsCuts", "hTaggerNMultiHitsCuts", 10,0,10, NTaggerElements, 0, NTaggerElements); //Number of Multihits per Event | After calibration and time cuts
     hTaggerNHits = new TH1D("TaggerNHits", "TaggerNHits", 50, 0, 50);//NHits spectra
 
-    gROOT->cd("Calibrated");
+    gROOT->cd("Calibration");
     gDirectory->mkdir("CB");
     gDirectory->cd("CB");
+    hCBChTDC = new TH2D("hCBChTDC", "hCBChTDC", 200, -10000, 10000, NCBElements, 0, NCBElements); //Uncalibrated TDC
     hCBTime = new TH2D("hCBTime", "hCBTime", 2000, -1000, 1000, NCBElements, 0, NCBElements);  //Calibrated Time
     hCBChADC = new TH2D("hCBChADC", "hCBChADC", 1000, -100, 10000, NCBElements, 0, NCBElements);//Raw ADC information
     hCBChEnergy = new TH2D("hCBChEnergy", "hCBChEnergy", 2000, -10, 1000, NCBElements, 0, NCBElements); //Calibrated ADC information
@@ -249,9 +248,10 @@ int InitCalibHistograms() {
     CBNCluster = new TH1D("CBNCluster", "CBNCluster", 25, 0, 25);
     CBClusterEnergy_VS_CBNElemCluster = new TH2D("CBClusterEnergy_VS_CBNElemCluster", "CBClusterEnergy_VS_CBNElemCluster", 100, 0, 300, 15, 0, 15);
 
-    gROOT->cd("Calibrated");
+    gROOT->cd("Calibration");
     gDirectory->mkdir("PID");
     gDirectory->cd("PID");
+    hPIDChTDC = new TH2D("hPIDChTDC", "hPIDChTDC", 200, -10000, 10000, NPIDElements, 0, NPIDElements); //Uncalibrated TDC
     hPIDTime = new TH2D("hPIDTime", "hPIDTime", 2000, -1000, 1000, NPIDElements, 0, NPIDElements);   //Calibrated Time
     hPIDChADC = new TH2D("hPIDChADC", "hPIDChADC", 1000, 0, 10000, NPIDElements, 0, NPIDElements); //Raw ADC information
     hPIDChADCCutTDCRequired = new TH2D("hPIDChADCCutTDCRequired", "hPIDChADCCutTDCRequired", 1000, 0, 10000, NPIDElements, 0, NPIDElements); //Raw ADC information
@@ -265,6 +265,36 @@ int InitCalibHistograms() {
     gDirectory->cd("PID-CB correclation");
     PIDCorrelation = new TH2D("PIDCorrelation", "PIDCorrelation", 45,-180, 180, 48, -180, 180); //x=CB, y=PID
     hCB_DeltaPhi = new TH2D("hCB_DeltaPhi", "hCB_DeltaPhi", 45, -180, 180, 24, 0, 24); hCB_DeltaPhi->Sumw2();
+
+    gROOT->cd("Calibration");
+    gDirectory->mkdir("BaF");
+    gDirectory->cd("BaF");
+    hBaFChTDC = new TH2D("hBaFChTDC", "hBaFChTDC", 250, -100, 3900, NBaFElements, 0, NBaFElements); //Uncalibrated TDC
+    hBaFTime = new TH2D("hBaFTime", "hBaFTime", 500, -100, 400, NBaFElements, 0, NBaFElements);   //Calibrated Time
+    hBaFChADC = new TH2D("hBaFChADC", "hBaFChADC", 1000, 0, 4000, NBaFElements, 0, NBaFElements); //Raw ADC information
+    hBaFChEnergy = new TH2D("hBaFChEnergy", "hBaFChEnergy", 600, -10, 290, NBaFElements, 0, NBaFElements); //Calibrated ADC information
+    hBaFNHits = new TH1D("BaFNHits", "BaFNHits", 50, 0, 50); //NHits spectra
+
+    gROOT->cd("Calibration");
+    gDirectory->mkdir("TAPSVeto");
+    gDirectory->cd("TAPSVeto");
+    hTAPSVetoChTDC = new TH2D("hTAPSVetoChTDC", "hTAPSVetoChTDC", 250, -100, 3900, NTAPSVetoElements, 0, NTAPSVetoElements); //Uncalibrated TDC
+    hTAPSVetoTime = new TH2D("hTAPSVetoTime", "hTAPSVetoTime", 500, -100, 400, NTAPSVetoElements, 0, NTAPSVetoElements);   //Calibrated Time
+    hTAPSVetoChADC = new TH2D("hTAPSVetoChADC", "hTAPSVetoChADC", 1000, 0, 4000, NTAPSVetoElements, 0, NTAPSVetoElements); //Raw ADC information
+    hTAPSVetoChEnergy = new TH2D("hTAPSVetoChEnergy", "hTAPSVetoChEnergy", 600, -10, 290, NTAPSVetoElements, 0, NTAPSVetoElements); //Calibrated ADC information
+    hTAPSVetoNHits = new TH1D("TAPSVetoNHits", "TAPSVetoNHits", 50, 0, 50); //NHits spectra
+
+    gROOT->cd("Calibration");
+    gDirectory->mkdir("PbWO");
+    gDirectory->cd("PbWO");
+    hPbWOChTDC = new TH2D("hPbWOChTDC", "hPbWOChTDC", 600, -11000, 1000, NPbWOElements, 0, NPbWOElements); //Uncalibrated TDC
+    hPbWOTime = new TH2D("hPbWOTime", "hPbWOTime", 500, -100, 400, NPbWOElements, 0, NPbWOElements);   //Calibrated Time
+    hPbWOChADC = new TH2D("hPbWOChADC", "hPbWOChADC", 1000, 0, 4000, NPbWOElements, 0, NPbWOElements); //Raw ADC information
+    hPbWOChEnergy = new TH2D("hPbWOChEnergy", "hPbWOChEnergy", 300, -10, 290, NPbWOElements, 0, NPbWOElements); //Calibrated ADC information
+    hPbWONMultiHits = new TH2D("hPbWONMultiHits", "hPbWONMultiHits", 10,0,10, NPbWOElements, 0, NPbWOElements); //Number of Multihits per Event | Without cuts, raw signal
+    hPbWONMultiHitsCuts = new TH2D("hPbWONMultiHitsCuts", "hPbWONMultiHitsCuts", 10,0,10, NPbWOElements, 0, NPbWOElements);  //Number of Multihits per Event | After calibration and time cuts
+    hPbWONHits = new TH1D("PbWONHits", "PbWONHits", 50, 0, 50); //NHits spectra
+
 
     gROOT->cd();
     gROOT->mkdir("Physics");

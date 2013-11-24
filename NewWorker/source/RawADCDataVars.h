@@ -56,9 +56,12 @@ struct TRawADCData {
     int ExperimentLiveCounterScalerCh;
     int UngatedLiveCounterScalerCh;
     int TaggerLiveCounterScalerCh;
-    TDetector Tagger;    //Detector ID = 0
+    TDetector Tagger;    //Detector ID = 0, see GeneralConstants.h for IDs
     TDetector CB;        //Detector ID = 1
     TDetector PID;       //Detector ID = 2
+    TDetector BaF;       //Detector ID = 3
+    TDetector TAPSVeto;  //Detector ID = 4
+    TDetector PbWO;      //Detector ID = 5
     TDetector Trigger;   //Detector ID = 10
 } RawADCData;
 
@@ -74,6 +77,7 @@ typedef struct {
 std::vector<TLookupTableADC> LookupTableADC;
 
 //Lookup table for Scaler ch to detector element
+//This is currently only used in the range from 0..0xffff, but in the data this could potentially be 32bit
 typedef struct {
     int DetectorID; //-1 = undef., 0 = Tagger, 1 = CB, 2 = PID, 10 = Trigger
     int ElementID; //from 0 to ...
@@ -87,6 +91,14 @@ int InitializeLookupTables() {
     RawADCData.ExperimentLiveCounterScalerCh = -1;
     RawADCData.UngatedLiveCounterScalerCh = -1;
     RawADCData.TaggerLiveCounterScalerCh = -1;
+
+    RawADCData.Tagger.TimeOffsetNS = 0;
+    RawADCData.CB.TimeOffsetNS = 0;
+    RawADCData.PID.TimeOffsetNS = 0;
+    RawADCData.BaF.TimeOffsetNS = 0;
+    RawADCData.TAPSVeto.TimeOffsetNS = 0;
+    RawADCData.PbWO.TimeOffsetNS = 0;
+    RawADCData.Trigger.TimeOffsetNS = 0;
 
     //Create Experiment Detectors
     LookupTableADC.resize(0xffff);

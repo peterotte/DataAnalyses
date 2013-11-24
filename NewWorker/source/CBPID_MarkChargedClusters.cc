@@ -13,7 +13,7 @@ int Do_MarkChargedClusters() {
                 int AktElementNr2 = EventBlock.Events.at(i).HitElements.at(m).ElementID;
                 int AktDetectorNr2 = EventBlock.Events.at(i).HitElements.at(m).DetectorID;
 
-                if ( (AktDetectorNr2 == 2) ) {
+                if ( (AktDetectorNr2 == DetectorIDPID) ) {
                     PIDCorrelation->Fill(
                                 EventBlock.Events.at(i).CBClusters.at(k).Position.phi * 180/3.141,
                                 RawADCData.PID.Elements.at(AktElementNr2).Position.phi * 180/3.141
