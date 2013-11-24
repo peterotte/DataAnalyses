@@ -247,8 +247,6 @@ int Do_ConstructDetectorHits() {
                 //Handle TDC information
                 for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) {
                     double TempResult = ( EventBlock.Events.at(i).HitElements.at(k).RawTDC.at(l)-EventBlock.Events.at(i).ReferenceRawTDCPbWO );
-                    if (TempResult < -50000) TempResult = TempResult + 62054; //Überlauf der CATCH TDCs
-                    if (TempResult > 50000) TempResult = TempResult - 62054; //Überlauf der CATCH TDCs
 
                     hPbWOChTDC->Fill(TempResult, AktElementNr );
                     TempResult = (-1*RawADCData.PbWO.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.PbWO.Elements.at(AktElementNr).TDCNSPerTick;

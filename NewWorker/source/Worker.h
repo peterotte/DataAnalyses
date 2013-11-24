@@ -45,6 +45,7 @@ typedef struct TEvent {
     int ReferenceRawTDCTagger; //TDC ch 1400
     int ReferenceRawTDCCB;     //TDC ch 2000
     int ReferenceRawTDCPbWO;   //TDC ch 29192
+    std::vector<int> TAPSCrateHitPattern; //Information from TAPS Trigger, which NTEC card should be read out
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -71,6 +72,11 @@ int Clear_TempEvent() {
     TempEvent.ReferenceRawTDCPbWO = NoValuePresent;
     TempEvent.HitElements.clear();
     TempEvent.CBClusters.clear();
+
+    TempEvent.TAPSCrateHitPattern.clear();
+    for (int i=0;i<=10;i++) {
+        TempEvent.TAPSCrateHitPattern.push_back(NoValuePresent);
+    }
 }
 
 TEventBlock EventBlock; //Here the ADC and scaler info since last scaler read gets saved

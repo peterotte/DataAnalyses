@@ -4,6 +4,7 @@
 #include <FillNHitsHistograms.cc>
 #include <CBPID_MarkChargedClusters.cc>
 #include <PhysicsAnalysis.cc>
+#include <NTECBitPatternTest.cc>
 
 
 int ProcessDataFileMk2() {
@@ -171,13 +172,21 @@ int ProcessDataFileMk2() {
                          } //Error block end
 
                          else { //Normale Daten
-                             if (ptrN[(i+bi+ei)].AsADC.Ch == 1400) {
-                                 TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value;
-                             } else if (ptrN[(i+bi+ei)].AsADC.Ch == 2000) {
-                                 TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value;
-                             } else if (ptrN[(i+bi+ei)].AsADC.Ch == 29192) {
-                                 TempEvent.ReferenceRawTDCPbWO = ptrN[(i+bi+ei)].AsADC.Value;
+                             switch (ptrN[(i+bi+ei)].AsADC.Ch) {
+                                 case 1400: TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 2000: TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 29192: TempEvent.ReferenceRawTDCPbWO = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 411: TempEvent.TAPSCrateHitPattern.at(1) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 421: TempEvent.TAPSCrateHitPattern.at(2) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 431: TempEvent.TAPSCrateHitPattern.at(3) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 441: TempEvent.TAPSCrateHitPattern.at(4) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 451: TempEvent.TAPSCrateHitPattern.at(5) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 461: TempEvent.TAPSCrateHitPattern.at(6) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 471: TempEvent.TAPSCrateHitPattern.at(7) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 481: TempEvent.TAPSCrateHitPattern.at(8) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 491: TempEvent.TAPSCrateHitPattern.at(9) = ptrN[(i+bi+ei)].AsADC.Value; break;
                              }
+
                              hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
 
                              int AktADCDetectorID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).DetectorID;
@@ -284,6 +293,7 @@ int ProcessDataFileMk2() {
                          if (DiscardActualEventBlock == 0) {
                              if (!ProgramOnlyFileCheckMode) {
                                  //TThread::Lock();
+                                 Do_CheckNTECBitPatternTest(); //For Detector Tests: Check the BitPattern from Trigger matches the data in NTEC module
                                  Do_ConstructDetectorHits(); //Use Raw data in EventBlock and apply the calibration to it
                                  Do_CBClusterFinding(); //Use calibrated data from EventBlock and fill EventBlock.Events.at(i).CBClusters
                                  Do_MarkChargedClusters(); //Diesmal mit Clustern und PID Elementen
