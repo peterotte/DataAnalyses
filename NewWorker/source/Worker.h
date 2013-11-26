@@ -46,6 +46,7 @@ typedef struct TEvent {
     int ReferenceRawTDCCB;     //TDC ch 2000
     int ReferenceRawTDCPbWO;   //TDC ch 29192
     std::vector<int> TAPSCrateHitPattern; //Information from TAPS Trigger, which NTEC card should be read out
+    std::vector<int> TAPSCrateHitRegister; //Information about the receiving process of the TAPS Trigger BitPattern
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -74,8 +75,10 @@ int Clear_TempEvent() {
     TempEvent.CBClusters.clear();
 
     TempEvent.TAPSCrateHitPattern.clear();
+    TempEvent.TAPSCrateHitRegister.clear();
     for (int i=0;i<=10;i++) {
         TempEvent.TAPSCrateHitPattern.push_back(NoValuePresent);
+        TempEvent.TAPSCrateHitRegister.push_back(NoValuePresent);
     }
 }
 
@@ -136,13 +139,15 @@ TH2D *hCBADCHits_VS_EventID, *hCBTDCHits_VS_EventID, *hCBHits_VS_EventID, *hBaFH
 TH2D *hCBDeletedHits_VS_EventID_DueEnergy, *hCBDeletedHits_VS_EventID_DueTime;
 TH2D *hCommonCounter_VS_EventID;
 
-TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC, *hBaFChTDC, *hTAPSVetoChTDC, *hPbWOChTDC; //Raw TDC information is put here
+TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC, *hBaFChTDC, *hBaFChTDCError, *hTAPSVetoChTDC, *hTAPSVetoChTDCError, *hPbWOChTDC; //Raw TDC information is put here
 TH2D *hTaggerTime, *hCBTime, *hPIDTime, *hBaFTime, *hTAPSVetoTime, *hPbWOTime; //Calibrated TDC information goes here
 
 TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits, *hPbWONMultiHits; //Number of Multihits per Event before any cut
 TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts, *hPbWONMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
 TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
+
+TH2D *hNTECModulesBitPatternTest; //Checks whether the receiving and the results of the BitPattern send to NTEC crate CPUs works
 
 TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 TH2D *hCBChADC, *hPIDChADC, *hBaFChADC, *hTAPSVetoChADC, *hPbWOChADC; //Raw ADC information is put here
@@ -197,6 +202,8 @@ int InitCalibHistograms() {
     hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
     //Error checks
     hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);
+
+    hNTECModulesBitPatternTest = new TH2D("hNTECModulesBitPatternTest", "hNTECModulesBitPatternTest", (3000000./1000.), 0, 3000000, (5+5*16)*9, 0, (5+5*16)*9); //9 crates with 5 Reg+16*5Bits
 
     gDirectory->mkdir("EventID");
     gDirectory->cd("EventID");
@@ -276,6 +283,7 @@ int InitCalibHistograms() {
     gDirectory->mkdir("BaF");
     gDirectory->cd("BaF");
     hBaFChTDC = new TH2D("hBaFChTDC", "hBaFChTDC", 250, -100, 3900, NBaFElements, 0, NBaFElements); //Uncalibrated TDC
+    hBaFChTDCError = new TH2D("hBaFChTDCError", "hBaFChTDCError", 250, -100, 3900, NBaFElements, 0, NBaFElements); //Uncalibrated TDC Error NTEC
     hBaFTime = new TH2D("hBaFTime", "hBaFTime", 500, -100, 400, NBaFElements, 0, NBaFElements);   //Calibrated Time
     hBaFChADC = new TH2D("hBaFChADC", "hBaFChADC", 1000, 0, 4000, NBaFElements, 0, NBaFElements); //Raw ADC information
     hBaFChEnergy = new TH2D("hBaFChEnergy", "hBaFChEnergy", 600, -10, 290, NBaFElements, 0, NBaFElements); //Calibrated ADC information
@@ -285,6 +293,7 @@ int InitCalibHistograms() {
     gDirectory->mkdir("TAPSVeto");
     gDirectory->cd("TAPSVeto");
     hTAPSVetoChTDC = new TH2D("hTAPSVetoChTDC", "hTAPSVetoChTDC", 250, -100, 3900, NTAPSVetoElements, 0, NTAPSVetoElements); //Uncalibrated TDC
+    hTAPSVetoChTDCError = new TH2D("hTAPSVetoChTDCError", "hTAPSVetoChTDCError", 250, -100, 3900, NTAPSVetoElements, 0, NTAPSVetoElements); //Uncalibrated TDC Error NTEC
     hTAPSVetoTime = new TH2D("hTAPSVetoTime", "hTAPSVetoTime", 500, -100, 400, NTAPSVetoElements, 0, NTAPSVetoElements);   //Calibrated Time
     hTAPSVetoChADC = new TH2D("hTAPSVetoChADC", "hTAPSVetoChADC", 1000, 0, 4000, NTAPSVetoElements, 0, NTAPSVetoElements); //Raw ADC information
     hTAPSVetoChEnergy = new TH2D("hTAPSVetoChEnergy", "hTAPSVetoChEnergy", 600, -10, 290, NTAPSVetoElements, 0, NTAPSVetoElements); //Calibrated ADC information

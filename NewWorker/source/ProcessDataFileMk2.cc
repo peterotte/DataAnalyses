@@ -176,15 +176,24 @@ int ProcessDataFileMk2() {
                                  case 1400: TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value; break;
                                  case 2000: TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value; break;
                                  case 29192: TempEvent.ReferenceRawTDCPbWO = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 411: TempEvent.TAPSCrateHitPattern.at(1) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 421: TempEvent.TAPSCrateHitPattern.at(2) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 431: TempEvent.TAPSCrateHitPattern.at(3) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 441: TempEvent.TAPSCrateHitPattern.at(4) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 451: TempEvent.TAPSCrateHitPattern.at(5) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 461: TempEvent.TAPSCrateHitPattern.at(6) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 471: TempEvent.TAPSCrateHitPattern.at(7) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 481: TempEvent.TAPSCrateHitPattern.at(8) = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 491: TempEvent.TAPSCrateHitPattern.at(9) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 410: TempEvent.TAPSCrateHitRegister.at(0) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 420: TempEvent.TAPSCrateHitRegister.at(1) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 430: TempEvent.TAPSCrateHitRegister.at(2) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 440: TempEvent.TAPSCrateHitRegister.at(3) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 450: TempEvent.TAPSCrateHitRegister.at(4) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 460: TempEvent.TAPSCrateHitRegister.at(5) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 470: TempEvent.TAPSCrateHitRegister.at(6) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 480: TempEvent.TAPSCrateHitRegister.at(7) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 490: TempEvent.TAPSCrateHitRegister.at(8) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 411: TempEvent.TAPSCrateHitPattern.at(0) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 421: TempEvent.TAPSCrateHitPattern.at(1) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 431: TempEvent.TAPSCrateHitPattern.at(2) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 441: TempEvent.TAPSCrateHitPattern.at(3) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 451: TempEvent.TAPSCrateHitPattern.at(4) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 461: TempEvent.TAPSCrateHitPattern.at(5) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 471: TempEvent.TAPSCrateHitPattern.at(6) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 481: TempEvent.TAPSCrateHitPattern.at(7) = ptrN[(i+bi+ei)].AsADC.Value; break;
+                                 case 491: TempEvent.TAPSCrateHitPattern.at(8) = ptrN[(i+bi+ei)].AsADC.Value; break;
                              }
 
                              hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
