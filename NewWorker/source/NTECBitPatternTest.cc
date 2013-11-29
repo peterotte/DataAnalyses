@@ -23,11 +23,24 @@ int Do_CheckNTECBitPatternTest() {
             case DetectorIDBaF:
                 for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) { //Look for TDC Hits
                     NTECModulesDataInBuffer.at( floor(AktElementNr / NumberChPerCardBaF) )++;
+
+                    //Fill hNTECModulesCFDBitPatternMatchTest
+                    int TempV = 2;
+                    if (EventBlock.Events.at(i).TAPSCFDHitPatternBit.at(AktElementNr) == 0) { TempV = EventBlock.Events.at(i).TAPSCFDHitPatternBit.at(AktElementNr); }
+                    if (EventBlock.Events.at(i).TAPSCFDHitPatternBit.at(AktElementNr) == 1) { TempV = EventBlock.Events.at(i).TAPSCFDHitPatternBit.at(AktElementNr); }
+                    hNTECModulesCFDBitPatternMatchTest->Fill(AktElementNr, TempV);
                 }
                 break;
             case DetectorIDTAPSVeto:
                 for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) { //Look for TDC Hits
                     NTECModulesDataInBuffer.at( floor(AktElementNr / NumberChPerCardTAPSVeto) + NBaFElements/NumberChPerCardBaF )++;
+
+                    //Fill hNTECModulesVetoBitPatternMatchTest
+                    int TempV = 2;
+                    if (EventBlock.Events.at(i).TAPSVetoHitPatternBit.at(AktElementNr) == 0) { TempV = EventBlock.Events.at(i).TAPSVetoHitPatternBit.at(AktElementNr); }
+                    if (EventBlock.Events.at(i).TAPSVetoHitPatternBit.at(AktElementNr) == 1) { TempV = EventBlock.Events.at(i).TAPSVetoHitPatternBit.at(AktElementNr); }
+                    hNTECModulesVetoBitPatternMatchTest->Fill(AktElementNr, TempV);
+
                 }
                 break;
 
@@ -58,6 +71,11 @@ int Do_CheckNTECBitPatternTest() {
                 } else {
                     hNTECModulesBitPatternTest->Fill(EventBlock.Events.at(i).EventID, 3+17*5*m); //Bit3: Received: Error
                 }
+            }
+
+            //Fill Bit 4
+            if (EventBlock.Events.at(i).VUPROMHitPattern.at(m) != EventBlock.Events.at(i).TAPSCrateHitPattern.at(m)) {
+                hNTECModulesBitPatternTest->Fill(EventBlock.Events.at(i).EventID, 4+17*5*m); //Bit4: Difference ins received HitPattern
             }
 
 

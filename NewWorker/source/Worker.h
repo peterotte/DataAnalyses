@@ -46,7 +46,10 @@ typedef struct TEvent {
     int ReferenceRawTDCCB;     //TDC ch 2000
     int ReferenceRawTDCPbWO;   //TDC ch 29192
     std::vector<int> TAPSCrateHitPattern; //Information from TAPS Trigger, which NTEC card should be read out
+    std::vector<int> VUPROMHitPattern; //Information from TAPS Trigger, directly read from VUPROM
     std::vector<int> TAPSCrateHitRegister; //Information about the receiving process of the TAPS Trigger BitPattern
+    std::vector<int> TAPSCFDHitPatternBit; //Information from the NTEC BitPattern
+    std::vector<int> TAPSVetoHitPatternBit; //Information from the NTEC BitPattern
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -73,12 +76,22 @@ int Clear_TempEvent() {
     TempEvent.ReferenceRawTDCPbWO = NoValuePresent;
     TempEvent.HitElements.clear();
     TempEvent.CBClusters.clear();
+    TempEvent.TAPSCFDHitPatternBit.clear();
+    TempEvent.TAPSVetoHitPatternBit.clear();
 
     TempEvent.TAPSCrateHitPattern.clear();
     TempEvent.TAPSCrateHitRegister.clear();
+    TempEvent.VUPROMHitPattern.clear();
     for (int i=0;i<=10;i++) {
         TempEvent.TAPSCrateHitPattern.push_back(NoValuePresent);
         TempEvent.TAPSCrateHitRegister.push_back(NoValuePresent);
+        TempEvent.VUPROMHitPattern.push_back(NoValuePresent);
+    }
+    for (int i=0;i<NBaFElements;i++) {
+        TempEvent.TAPSCFDHitPatternBit.push_back(NoValuePresent);
+    }
+    for (int i=0;i<NTAPSVetoElements;i++) {
+        TempEvent.TAPSVetoHitPatternBit.push_back(NoValuePresent);
     }
 }
 
@@ -148,6 +161,8 @@ TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts, *hPbWONMul
 TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
 
 TH2D *hNTECModulesBitPatternTest; //Checks whether the receiving and the results of the BitPattern send to NTEC crate CPUs works
+TH2D *hNTECModulesCFDBitPatternMatchTest; //Checks, whether the information from the BitPattern and the CFD of the NTEC matches: if BP, then is there also CFD data?
+TH2D *hNTECModulesVetoBitPatternMatchTest; //Checks, whether the information from the BitPattern and the VETO of the NTEC matches: if BP, then is there also CFD data?
 
 TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 TH2D *hCBChADC, *hPIDChADC, *hBaFChADC, *hTAPSVetoChADC, *hPbWOChADC; //Raw ADC information is put here
@@ -204,6 +219,8 @@ int InitCalibHistograms() {
     hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);
 
     hNTECModulesBitPatternTest = new TH2D("hNTECModulesBitPatternTest", "hNTECModulesBitPatternTest", (3000000./1000.), 0, 3000000, (5+5*16)*9, 0, (5+5*16)*9); //9 crates with 5 Reg+16*5Bits
+    hNTECModulesCFDBitPatternMatchTest = new TH2D("hNTECModulesCFDBitPatternMatchTest", "hNTECModulesCFDBitPatternMatchTest", NBaFElements, 0, NBaFElements, 3, 0, 3);
+    hNTECModulesVetoBitPatternMatchTest = new TH2D("hNTECModulesVetoBitPatternMatchTest", "hNTECModulesVetoBitPatternMatchTest", NTAPSVetoElements, 0, NTAPSVetoElements, 3, 0, 3);
 
     gDirectory->mkdir("EventID");
     gDirectory->cd("EventID");
