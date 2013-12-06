@@ -45,11 +45,10 @@ typedef struct TEvent {
     int ReferenceRawTDCTagger; //TDC ch 1400
     int ReferenceRawTDCCB;     //TDC ch 2000
     int ReferenceRawTDCPbWO;   //TDC ch 29192
-    std::vector<int> TAPSCrateHitPattern; //Information from TAPS Trigger, which NTEC card should be read out
-    std::vector<int> VUPROMHitPattern; //Information from TAPS Trigger, directly read from VUPROM
-    std::vector<int> TAPSCrateHitRegister; //Information about the receiving process of the TAPS Trigger BitPattern
-    std::vector<int> TAPSCFDHitPatternBit; //Information from the NTEC BitPattern
-    std::vector<int> TAPSVetoHitPatternBit; //Information from the NTEC BitPattern
+    std::vector<int> TestDetectorTDC;
+    int TestDetectorADC;
+    std::vector<int> CherenkovTDC;
+    int CherenkovADC;
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -76,23 +75,10 @@ int Clear_TempEvent() {
     TempEvent.ReferenceRawTDCPbWO = NoValuePresent;
     TempEvent.HitElements.clear();
     TempEvent.CBClusters.clear();
-    TempEvent.TAPSCFDHitPatternBit.clear();
-    TempEvent.TAPSVetoHitPatternBit.clear();
-
-    TempEvent.TAPSCrateHitPattern.clear();
-    TempEvent.TAPSCrateHitRegister.clear();
-    TempEvent.VUPROMHitPattern.clear();
-    for (int i=0;i<=10;i++) {
-        TempEvent.TAPSCrateHitPattern.push_back(NoValuePresent);
-        TempEvent.TAPSCrateHitRegister.push_back(NoValuePresent);
-        TempEvent.VUPROMHitPattern.push_back(NoValuePresent);
-    }
-    for (int i=0;i<NBaFElements;i++) {
-        TempEvent.TAPSCFDHitPatternBit.push_back(NoValuePresent);
-    }
-    for (int i=0;i<NTAPSVetoElements;i++) {
-        TempEvent.TAPSVetoHitPatternBit.push_back(NoValuePresent);
-    }
+    TempEvent.TestDetectorTDC.clear();
+    TempEvent.TestDetectorADC = NoValuePresent;
+    TempEvent.CherenkovTDC.clear();
+    TempEvent.CherenkovADC = NoValuePresent;
 }
 
 TEventBlock EventBlock; //Here the ADC and scaler info since last scaler read gets saved
@@ -152,17 +138,18 @@ TH2D *hCBADCHits_VS_EventID, *hCBTDCHits_VS_EventID, *hCBHits_VS_EventID, *hBaFH
 TH2D *hCBDeletedHits_VS_EventID_DueEnergy, *hCBDeletedHits_VS_EventID_DueTime;
 TH2D *hCommonCounter_VS_EventID;
 
-TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC, *hBaFChTDC, *hBaFChTDCError, *hTAPSVetoChTDC, *hTAPSVetoChTDCError, *hPbWOChTDC; //Raw TDC information is put here
+TH2D *hTaggerChTDC, *hCBChTDC, *hPIDChTDC, *hBaFChTDC, *hTAPSVetoChTDC, *hPbWOChTDC; //Raw TDC information is put here
 TH2D *hTaggerTime, *hCBTime, *hPIDTime, *hBaFTime, *hTAPSVetoTime, *hPbWOTime; //Calibrated TDC information goes here
 
 TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits, *hPbWONMultiHits; //Number of Multihits per Event before any cut
 TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts, *hPbWONMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
-TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
+TH1D *hTestDetectorTDC, *hTestDetectorADC;
+TH1D *hCherenkovTDC, *hCherenkovADC;
+TH1D *hTestDetectorAnalysis;
+TH2D *hTestDetectorAnalysis2D, *hTestDetectorAnalysisCVeto2D, *hTestDetectorAnalysisTaggerReg2D;
 
-TH2D *hNTECModulesBitPatternTest; //Checks whether the receiving and the results of the BitPattern send to NTEC crate CPUs works
-TH2D *hNTECModulesCFDBitPatternMatchTest; //Checks, whether the information from the BitPattern and the CFD of the NTEC matches: if BP, then is there also CFD data?
-TH2D *hNTECModulesVetoBitPatternMatchTest; //Checks, whether the information from the BitPattern and the VETO of the NTEC matches: if BP, then is there also CFD data?
+TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
 
 TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 TH2D *hCBChADC, *hPIDChADC, *hBaFChADC, *hTAPSVetoChADC, *hPbWOChADC; //Raw ADC information is put here
@@ -218,10 +205,6 @@ int InitCalibHistograms() {
     //Error checks
     hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);
 
-    hNTECModulesBitPatternTest = new TH2D("hNTECModulesBitPatternTest", "hNTECModulesBitPatternTest", (3000000./1000.), 0, 3000000, (5+5*16)*9, 0, (5+5*16)*9); //9 crates with 5 Reg+16*5Bits
-    hNTECModulesCFDBitPatternMatchTest = new TH2D("hNTECModulesCFDBitPatternMatchTest", "hNTECModulesCFDBitPatternMatchTest", NBaFElements, 0, NBaFElements, 3, 0, 3);
-    hNTECModulesVetoBitPatternMatchTest = new TH2D("hNTECModulesVetoBitPatternMatchTest", "hNTECModulesVetoBitPatternMatchTest", NTAPSVetoElements, 0, NTAPSVetoElements, 3, 0, 3);
-
     gDirectory->mkdir("EventID");
     gDirectory->cd("EventID");
     //ErrorChecking for CBADCs
@@ -233,6 +216,18 @@ int InitCalibHistograms() {
     hCommonCounter_VS_EventID = new TH2D("hCommonCounter", "hCommonCounter", 2000, 0, 2000000, 100, -2, 2.);
     //ErrorChecking for BaF
     hBaFHits_VS_EventID = new TH2D("BaFHits_VS_EventID", "BaFHits_VS_EventID", (3000000./1000.), 0, 3000000, NBaFElements, 0, NBaFElements);
+
+    gROOT->cd("RawDataDetails");
+    gDirectory->mkdir("TestDetector");
+    gDirectory->cd("TestDetector");
+    hCherenkovTDC = new TH1D("hCherenkovTDC", "hCherenkovTDC", 1000, -10000, 10000);
+    hCherenkovADC = new TH1D("hCherenkovADC", "hCherenkovADC", 1000, -100, 10000);
+    hTestDetectorTDC = new TH1D("hTestDetectorTDC", "hTestDetectorTDC", 1000,-10000, 10000);
+    hTestDetectorADC = new TH1D("hTestDetectorADC", "hTestDetectorADC", 1000,-100, 10000);
+    hTestDetectorAnalysis = new TH1D("hTestDetectorAnalysis", "hTestDetectorAnalysis", 1000, 0, 1000);
+    hTestDetectorAnalysis2D = new TH2D("hTestDetectorAnalysis2D", "hTestDetectorAnalysis2D", 300, 0, 1000, 300, -100, 5000);
+    hTestDetectorAnalysisCVeto2D = new TH2D("hTestDetectorAnalysisCVeto2D", "hTestDetectorAnalysisCVeto2D", 300, 0, 1000, 300, -100, 5000);
+    hTestDetectorAnalysisTaggerReg2D = new TH2D("hTestDetectorAnalysisTaggerReg2D", "hTestDetectorAnalysisTaggerReg2D", 300, 0, 1000, 300, -100, 5000);
 
     gROOT->cd("RawDataDetails");
     gDirectory->mkdir("ADC");
@@ -300,7 +295,6 @@ int InitCalibHistograms() {
     gDirectory->mkdir("BaF");
     gDirectory->cd("BaF");
     hBaFChTDC = new TH2D("hBaFChTDC", "hBaFChTDC", 250, -100, 3900, NBaFElements, 0, NBaFElements); //Uncalibrated TDC
-    hBaFChTDCError = new TH2D("hBaFChTDCError", "hBaFChTDCError", 250, -100, 3900, NBaFElements, 0, NBaFElements); //Uncalibrated TDC Error NTEC
     hBaFTime = new TH2D("hBaFTime", "hBaFTime", 500, -100, 400, NBaFElements, 0, NBaFElements);   //Calibrated Time
     hBaFChADC = new TH2D("hBaFChADC", "hBaFChADC", 1000, 0, 4000, NBaFElements, 0, NBaFElements); //Raw ADC information
     hBaFChEnergy = new TH2D("hBaFChEnergy", "hBaFChEnergy", 600, -10, 290, NBaFElements, 0, NBaFElements); //Calibrated ADC information
@@ -310,7 +304,6 @@ int InitCalibHistograms() {
     gDirectory->mkdir("TAPSVeto");
     gDirectory->cd("TAPSVeto");
     hTAPSVetoChTDC = new TH2D("hTAPSVetoChTDC", "hTAPSVetoChTDC", 250, -100, 3900, NTAPSVetoElements, 0, NTAPSVetoElements); //Uncalibrated TDC
-    hTAPSVetoChTDCError = new TH2D("hTAPSVetoChTDCError", "hTAPSVetoChTDCError", 250, -100, 3900, NTAPSVetoElements, 0, NTAPSVetoElements); //Uncalibrated TDC Error NTEC
     hTAPSVetoTime = new TH2D("hTAPSVetoTime", "hTAPSVetoTime", 500, -100, 400, NTAPSVetoElements, 0, NTAPSVetoElements);   //Calibrated Time
     hTAPSVetoChADC = new TH2D("hTAPSVetoChADC", "hTAPSVetoChADC", 1000, 0, 4000, NTAPSVetoElements, 0, NTAPSVetoElements); //Raw ADC information
     hTAPSVetoChEnergy = new TH2D("hTAPSVetoChEnergy", "hTAPSVetoChEnergy", 600, -10, 290, NTAPSVetoElements, 0, NTAPSVetoElements); //Calibrated ADC information

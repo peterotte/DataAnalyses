@@ -4,6 +4,9 @@
 int Do_ConstructDetectorHits() {
     for (int i=0;i < EventBlock.Events.size(); i++) { //Loop through all events
         //Printf("\n== Event start: Nr %d =============================", EventBlock.Events.at(i).EventID);
+        double TestDetectorEnergySum = 0;
+
+        int NTaggerHitshighE = 0;
 
         for (int k=0;k < EventBlock.Events.at(i).HitElements.size();k++) { //Goes through all hits in event
           //  Printf("Detector: %4d Element: %4d ADC: %5d TDC: %5d", EventBlock.Events.at(i).HitElements.at(k).DetectorID, EventBlock.Events.at(i).HitElements.at(k).ElementID,
@@ -21,6 +24,12 @@ int Do_ConstructDetectorHits() {
                     if (TempResult > 50000) TempResult = TempResult - 62054; //Überlauf der CATCH TDCs
 
                     hTaggerChTDC->Fill(TempResult, AktElementNr );
+
+                    if (AktElementNr < 100) {
+                        if ( (TempResult < -1800) && (TempResult > -2100) ) {
+                            NTaggerHitshighE++;
+                        }
+                    }
 
                     TempResult = (-1*RawADCData.Tagger.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.Tagger.Elements.at(AktElementNr).TDCNSPerTick +
                             RawADCData.Tagger.TimeOffsetNS;
@@ -152,6 +161,29 @@ int Do_ConstructDetectorHits() {
                 hBaFChADC->Fill( EventBlock.Events.at(i).HitElements.at(k).RawADC, AktElementNr ); //Also entries with no ADC information (NoValuePresent) are filled
 
                 double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.BaF.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.BaF.Elements.at(AktElementNr).ADCMEVPerTick;
+
+
+                if ( ( (AktElementNr >= 79) && (AktElementNr <=89) ) ||
+                     (AktElementNr == 27) ||
+                     (AktElementNr == 34) ||
+                     (AktElementNr == 35) ||
+                     (AktElementNr == 43) ||
+                     (AktElementNr == 44) ||
+                     (AktElementNr == 52) ||
+                     (AktElementNr == 53) ||
+                     (AktElementNr == 54) ||
+                     (AktElementNr == 61) ||
+                     (AktElementNr == 62) ||
+                     (AktElementNr == 63) ||
+                     (AktElementNr == 92) ||
+                     (AktElementNr == 93) ||
+                     (AktElementNr == 94) ||
+                     (AktElementNr == 100) ||
+                     (AktElementNr == 101)
+                    ){
+                    TestDetectorEnergySum += TempEnergy;
+                }
+
                 //Do Energy Cuts
                 int TempEFill = -1;
                 if (CutHitsOutOfRange) {
@@ -268,6 +300,64 @@ int Do_ConstructDetectorHits() {
 
 
         }
+
+        //C start
+        int NOfTDCInWindow = 0;
+        if (EventBlock.Events.at(i).CherenkovADC != NoValuePresent) {
+            hCherenkovADC->Fill(EventBlock.Events.at(i).CherenkovADC);
+        }
+
+        if (EventBlock.Events.at(i).CherenkovTDC.size() > 0) {
+            for (int k=0; k< EventBlock.Events.at(i).CherenkovTDC.size(); k++) {
+                double TempResult2 = ( EventBlock.Events.at(i).CherenkovTDC.at(k)-EventBlock.Events.at(i).ReferenceRawTDCTagger );
+                if (TempResult2 < -50000) TempResult2 = TempResult2 + 62054; //Überlauf der CATCH TDCs
+                if (TempResult2 > 50000) TempResult2 = TempResult2 - 62054; //Überlauf der CATCH TDCs
+
+                hCherenkovTDC->Fill(TempResult2);
+
+                if ( (TempResult2 > -1600) && (TempResult2 < -1400) ) {
+                    NOfTDCInWindow++;
+                }
+            }
+        }
+        //C end
+
+        //TestDetector start
+        if (EventBlock.Events.at(i).TestDetectorADC != NoValuePresent) {
+            hTestDetectorADC->Fill(EventBlock.Events.at(i).TestDetectorADC);
+        }
+
+        if (EventBlock.Events.at(i).TestDetectorTDC.size() > 0) {
+            for (int k=0; k< EventBlock.Events.at(i).TestDetectorTDC.size(); k++) {
+                double TempResult2 = ( EventBlock.Events.at(i).TestDetectorTDC.at(k)-EventBlock.Events.at(i).ReferenceRawTDCTagger );
+                if (TempResult2 < -50000) TempResult2 = TempResult2 + 62054; //Überlauf der CATCH TDCs
+                if (TempResult2 > 50000) TempResult2 = TempResult2 - 62054; //Überlauf der CATCH TDCs
+
+                hTestDetectorTDC->Fill(TempResult2);
+            }
+        }
+
+        if (TestDetectorEnergySum > 10) {
+            hTestDetectorAnalysis->Fill(TestDetectorEnergySum);
+
+            if (EventBlock.Events.at(i).TestDetectorADC != NoValuePresent) {
+                hTestDetectorAnalysis2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
+
+                if (NOfTDCInWindow > 0) {
+                    hTestDetectorAnalysisCVeto2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
+                }
+
+                if (NTaggerHitshighE > 0) {
+                    hTestDetectorAnalysisTaggerReg2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
+                }
+            }
+
+
+
+        }
+
+
+
     }
 
 
