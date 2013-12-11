@@ -162,6 +162,9 @@ int Do_ConstructDetectorHits() {
 
                 double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.BaF.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.BaF.Elements.at(AktElementNr).ADCMEVPerTick;
 
+                //if (TempEnergy > 10) TempDiscretBaFEnergySum++;
+
+
 
                 if ( ( (AktElementNr >= 79) && (AktElementNr <=89) ) ||
                      (AktElementNr == 27) ||

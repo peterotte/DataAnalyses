@@ -194,6 +194,14 @@ int ProcessDataFileMk2() {
                                  hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
                                  hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
                                  hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
+
+                                 if (
+                                        ( ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
+                                        ( ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch)
+                                    ) {
+                                     printf("Error in Multi ADC numbering.\n");
+                                 }
+
                              }
 
                              //MWPC ADC: Debug single ADC Sums

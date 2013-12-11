@@ -22,7 +22,7 @@ const int NCBElements = 720;
 const int NPIDElements = 24;
 const int NBaFElements = 64*6;
 const int NTAPSVetoElements = 64*6;
-const int NPbWOElements = 12*6;
+const int NPbWOElements = 12*6; //96;
 int NTriggerElements = -1; //Needs to be defined in Trigger Config file
 
 

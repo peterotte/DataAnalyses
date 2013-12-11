@@ -314,7 +314,7 @@ int InitCalibHistograms() {
     gDirectory->cd("PbWO");
     hPbWOChTDC = new TH2D("hPbWOChTDC", "hPbWOChTDC", 600, -11000, 1000, NPbWOElements, 0, NPbWOElements); //Uncalibrated TDC
     hPbWOTime = new TH2D("hPbWOTime", "hPbWOTime", 500, -100, 400, NPbWOElements, 0, NPbWOElements);   //Calibrated Time
-    hPbWOChADC = new TH2D("hPbWOChADC", "hPbWOChADC", 1000, 0, 4000, NPbWOElements, 0, NPbWOElements); //Raw ADC information
+    hPbWOChADC = new TH2D("hPbWOChADC", "hPbWOChADC", 4000, 0, 4000, NPbWOElements, 0, NPbWOElements); //Raw ADC information
     hPbWOChEnergy = new TH2D("hPbWOChEnergy", "hPbWOChEnergy", 300, -10, 290, NPbWOElements, 0, NPbWOElements); //Calibrated ADC information
     hPbWONMultiHits = new TH2D("hPbWONMultiHits", "hPbWONMultiHits", 10,0,10, NPbWOElements, 0, NPbWOElements); //Number of Multihits per Event | Without cuts, raw signal
     hPbWONMultiHitsCuts = new TH2D("hPbWONMultiHitsCuts", "hPbWONMultiHitsCuts", 10,0,10, NPbWOElements, 0, NPbWOElements);  //Number of Multihits per Event | After calibration and time cuts
