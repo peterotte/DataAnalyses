@@ -11,18 +11,12 @@ const int ADCTypeIDMoellerHisto = 3; //Not yet used
 const int DetectorIDTagger   = 0;      //Detector ID = 0
 const int DetectorIDCB       = 1;      //Detector ID = 1
 const int DetectorIDPID      = 2;      //Detector ID = 2
-const int DetectorIDBaF      = 3;      //Detector ID = 3
-const int DetectorIDTAPSVeto = 4;      //Detector ID = 4
-const int DetectorIDPbWO     = 5;      //Detector ID = 5
 const int DetectorIDTrigger  = 10;     //Detector ID = 10
 
 
 const int NTaggerElements = 352;
 const int NCBElements = 720;
 const int NPIDElements = 24;
-const int NBaFElements = 64*6;
-const int NTAPSVetoElements = 64*6;
-const int NPbWOElements = 12*6; //96;
 int NTriggerElements = -1; //Needs to be defined in Trigger Config file
 
 
@@ -76,6 +70,9 @@ const int NoValuePresent = -1E9;
 
 //To check, whether the number of scalers is constant with time
 int LastScalerReadNCh = -1;
+
+//if set to -1, then the actual EventBlock will not be analysed after Do_ConstructDetectorHits()
+int DiscardActualEventBlockDueToCBHits = 0;
 
 //------------------------------------------------------------------------------
 

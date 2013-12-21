@@ -1,0 +1,50 @@
+From scratch:
+
+1.
+Alle Dateien analysieren:
+Dieses Programm ausführen, welches dann den Analyser für jede Datei ausführt.
+~/NewAnalysis/AR/bin/Worker
+
+Die Log Dateien werden nach 
+/datapool/home/otte/NewAnalysis/AR/logs
+erstellt, die Ergebnisse in das jeweilige output Unterverzeichnis des Datenverzeichnisses
+
+Erstellung von
+- Signal
+- Untergrund
+- Durchführung: Signal - Untergrund
+
+
+2. Histogramme zusammenfassen
+step0/step0.sh
+dieses fasst die Daten von 
+- Sep  -> NewAnalysis/analysis/Combined/step0/output/sumButSep.root
+- Feb  -> NewAnalysis/analysis/Combined/step0/output/sumButFeb.root
+- 2013 -> NewAnalysis/analysis/Combined/step0/output/sumH.root
+zusammen
+
+im vierten Schitt werden die beiden But Strahlzeit zusammengefasst
+       -> NewAnalysis/analysis/Combined/step0/output/sumBut.root
+
+
+
+3. Berechnungn durchführen
+step1/step1.sh
+Makro SubBackgroundBut.C ausführen
+- Difference in But + and -                                            ("ButMissingMassSignalDiff")
+- Divide by H                                                          ("ButDivH")
+- wie zuvor, plus Berücksichtigung der Photon Polarisation Verteilung  ("ButDivHDivBeamShape")
+  aus analysis/Combined/beampolshape/output/BeamPolValues.root
+- wie zuvor, plus korrektur um BeamPol Degree und Target Pol Degree    ("ButDivHDivPols")
+- Correction for photon flux                                           ("ButDivHDivPolsFlux")
+
+
+4. Darstellug
+step2/step2.sh
+makro PlotWithMAID.C ausführen
+
+Verwendet Das TH2D "ButDivHDivPolsFlux" aus step1/output/results.root
+
+
+
+

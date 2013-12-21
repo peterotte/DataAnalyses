@@ -1,0 +1,22 @@
+1st 
+Daten herunterladen mittels:
+zuvor die entsprechenden Zeilen in 
+
+int ProcessData() {
+	ReadTaggerConfigurationFile();
+	//DownloadData();
+	GenerateRootFile();
+
+	exit(1);
+}
+ auskommentieren
+ 
+root ProcessData.C
+
+falls nicht alle Energien heruntergeladen werden können, dann kurz warten und in einem zweiten Schritt den Rest laden.
+
+2nd
+
+Root Datei erzeugen
+
+root ProcessData.C

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 
-./CombineHistogramsButFeb.sh
-./CombineHistogramsButSep.sh
+./CombineHistogramsButSingle.sh
 ./CombineHistogramsH.sh
 
 # Requires ButFeb and ButSep root files

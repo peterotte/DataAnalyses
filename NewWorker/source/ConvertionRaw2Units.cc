@@ -4,9 +4,7 @@
 int Do_ConstructDetectorHits() {
     for (int i=0;i < EventBlock.Events.size(); i++) { //Loop through all events
         //Printf("\n== Event start: Nr %d =============================", EventBlock.Events.at(i).EventID);
-        double TestDetectorEnergySum = 0;
 
-        int NTaggerHitshighE = 0;
 
         for (int k=0;k < EventBlock.Events.at(i).HitElements.size();k++) { //Goes through all hits in event
           //  Printf("Detector: %4d Element: %4d ADC: %5d TDC: %5d", EventBlock.Events.at(i).HitElements.at(k).DetectorID, EventBlock.Events.at(i).HitElements.at(k).ElementID,
@@ -24,12 +22,6 @@ int Do_ConstructDetectorHits() {
                     if (TempResult > 50000) TempResult = TempResult - 62054; //Überlauf der CATCH TDCs
 
                     hTaggerChTDC->Fill(TempResult, AktElementNr );
-
-                    if (AktElementNr < 100) {
-                        if ( (TempResult < -1800) && (TempResult > -2100) ) {
-                            NTaggerHitshighE++;
-                        }
-                    }
 
                     TempResult = (-1*RawADCData.Tagger.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.Tagger.Elements.at(AktElementNr).TDCNSPerTick +
                             RawADCData.Tagger.TimeOffsetNS;
@@ -155,214 +147,10 @@ int Do_ConstructDetectorHits() {
                 }
             }
 
-            //BaF
-            if (EventBlock.Events.at(i).HitElements.at(k).DetectorID == DetectorIDBaF) {
-                //Handle ADC information
-                hBaFChADC->Fill( EventBlock.Events.at(i).HitElements.at(k).RawADC, AktElementNr ); //Also entries with no ADC information (NoValuePresent) are filled
-
-                double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.BaF.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.BaF.Elements.at(AktElementNr).ADCMEVPerTick;
-
-                //if (TempEnergy > 10) TempDiscretBaFEnergySum++;
-
-
-
-                if ( ( (AktElementNr >= 79) && (AktElementNr <=89) ) ||
-                     (AktElementNr == 27) ||
-                     (AktElementNr == 34) ||
-                     (AktElementNr == 35) ||
-                     (AktElementNr == 43) ||
-                     (AktElementNr == 44) ||
-                     (AktElementNr == 52) ||
-                     (AktElementNr == 53) ||
-                     (AktElementNr == 54) ||
-                     (AktElementNr == 61) ||
-                     (AktElementNr == 62) ||
-                     (AktElementNr == 63) ||
-                     (AktElementNr == 92) ||
-                     (AktElementNr == 93) ||
-                     (AktElementNr == 94) ||
-                     (AktElementNr == 100) ||
-                     (AktElementNr == 101)
-                    ){
-                    TestDetectorEnergySum += TempEnergy;
-                }
-
-                //Do Energy Cuts
-                int TempEFill = -1;
-                if (CutHitsOutOfRange) {
-                    if ( (TempEnergy < RawADCData.BaF.Elements.at(AktElementNr).ADCLowThresholdMEV) || (TempEnergy > RawADCData.BaF.Elements.at(AktElementNr).ADCHighThresholdMEV) ) {
-                        TempEFill = 0;
-                    }
-                }
-                if (TempEFill) {
-                    EventBlock.Events.at(i).HitElements.at(k).Energy = TempEnergy;
-                    //hBaFChEnergy->Fill( TempEnergy, AktElementNr );
-                }
-
-                //Handle TDC information
-                for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) {
-                    double TempResult = ( EventBlock.Events.at(i).HitElements.at(k).RawTDC.at(l) );
-                    hBaFChTDC->Fill(TempResult, AktElementNr );
-                    TempResult = (-1*RawADCData.BaF.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.BaF.Elements.at(AktElementNr).TDCNSPerTick;
-
-                    //Do Time Cuts
-                    int TempFill = -1;
-                    if (CutHitsOutOfRange) {
-                        if ( (TempResult < RawADCData.BaF.Elements.at(AktElementNr).TDCLowThresholdNS) || (TempResult > RawADCData.BaF.Elements.at(AktElementNr).TDCHighThresholdNS) ) {
-                            TempFill = 0;
-                        }
-                    }
-                    if (TempFill) {
-                        EventBlock.Events.at(i).HitElements.at(k).Time.push_back(TempResult);
-                        //hBaFTime->Fill( TempResult, AktElementNr );
-                    }
-
-                }
-            }
-
-            //TAPSVeto
-            if (EventBlock.Events.at(i).HitElements.at(k).DetectorID == DetectorIDTAPSVeto) {
-                //Handle ADC information
-                hTAPSVetoChADC->Fill( EventBlock.Events.at(i).HitElements.at(k).RawADC, AktElementNr ); //Also entries with no ADC information (NoValuePresent) are filled
-
-                double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.TAPSVeto.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.TAPSVeto.Elements.at(AktElementNr).ADCMEVPerTick;
-                //Do Energy Cuts
-                int TempEFill = -1;
-                if (CutHitsOutOfRange) {
-                    if ( (TempEnergy < RawADCData.TAPSVeto.Elements.at(AktElementNr).ADCLowThresholdMEV) || (TempEnergy > RawADCData.TAPSVeto.Elements.at(AktElementNr).ADCHighThresholdMEV) ) {
-                        TempEFill = 0;
-                    }
-                }
-                if (TempEFill) {
-                    EventBlock.Events.at(i).HitElements.at(k).Energy = TempEnergy;
-                    //hTAPSVetoChEnergy->Fill( TempEnergy, AktElementNr );
-                }
-
-                //Handle TDC information
-                for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) {
-                    double TempResult = ( EventBlock.Events.at(i).HitElements.at(k).RawTDC.at(l) );
-                    hTAPSVetoChTDC->Fill(TempResult, AktElementNr );
-                    TempResult = (-1*RawADCData.TAPSVeto.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.TAPSVeto.Elements.at(AktElementNr).TDCNSPerTick;
-
-                    //Do Time Cuts
-                    int TempFill = -1;
-                    if (CutHitsOutOfRange) {
-                        if ( (TempResult < RawADCData.TAPSVeto.Elements.at(AktElementNr).TDCLowThresholdNS) || (TempResult > RawADCData.TAPSVeto.Elements.at(AktElementNr).TDCHighThresholdNS) ) {
-                            TempFill = 0;
-                        }
-                    }
-                    if (TempFill) {
-                        EventBlock.Events.at(i).HitElements.at(k).Time.push_back(TempResult);
-                        //hTAPSVetoTime->Fill( TempResult, AktElementNr );
-                    }
-
-                }
-            }
-
-            //PbWO
-            if (EventBlock.Events.at(i).HitElements.at(k).DetectorID == DetectorIDPbWO) {
-                hPbWONMultiHits->Fill(EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(), AktElementNr);
-
-                //Handle ADC information
-                hPbWOChADC->Fill( EventBlock.Events.at(i).HitElements.at(k).RawADC, AktElementNr ); //Also entries with no ADC information (NoValuePresent) are filled
-
-                double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.PbWO.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.PbWO.Elements.at(AktElementNr).ADCMEVPerTick;
-                //Do Energy Cuts
-                int TempEFill = -1;
-                if (CutHitsOutOfRange) {
-                    if ( (TempEnergy < RawADCData.PbWO.Elements.at(AktElementNr).ADCLowThresholdMEV) || (TempEnergy > RawADCData.PbWO.Elements.at(AktElementNr).ADCHighThresholdMEV) ) {
-                        TempEFill = 0;
-                    }
-                }
-                if (TempEFill) {
-                    EventBlock.Events.at(i).HitElements.at(k).Energy = TempEnergy;
-                    //hPbWOChEnergy->Fill( TempEnergy, AktElementNr );
-                }
-
-                //Handle TDC information
-                for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) {
-                    double TempResult = ( EventBlock.Events.at(i).HitElements.at(k).RawTDC.at(l)-EventBlock.Events.at(i).ReferenceRawTDCPbWO );
-
-                    hPbWOChTDC->Fill(TempResult, AktElementNr );
-                    TempResult = (-1*RawADCData.PbWO.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.PbWO.Elements.at(AktElementNr).TDCNSPerTick;
-
-                    //Do Time Cuts
-                    int TempFill = -1;
-                    if (CutHitsOutOfRange) {
-                        if ( (TempResult < RawADCData.PbWO.Elements.at(AktElementNr).TDCLowThresholdNS) || (TempResult > RawADCData.PbWO.Elements.at(AktElementNr).TDCHighThresholdNS) ) {
-                            TempFill = 0;
-                        }
-                    }
-                    if (TempFill) {
-                        EventBlock.Events.at(i).HitElements.at(k).Time.push_back(TempResult);
-                        //hPbWOTime->Fill( TempResult, AktElementNr );
-                    }
-
-                }
-            }
-
-
         }
-
-        //C start
-        int NOfTDCInWindow = 0;
-        if (EventBlock.Events.at(i).CherenkovADC != NoValuePresent) {
-            hCherenkovADC->Fill(EventBlock.Events.at(i).CherenkovADC);
-        }
-
-        if (EventBlock.Events.at(i).CherenkovTDC.size() > 0) {
-            for (int k=0; k< EventBlock.Events.at(i).CherenkovTDC.size(); k++) {
-                double TempResult2 = ( EventBlock.Events.at(i).CherenkovTDC.at(k)-EventBlock.Events.at(i).ReferenceRawTDCTagger );
-                if (TempResult2 < -50000) TempResult2 = TempResult2 + 62054; //Überlauf der CATCH TDCs
-                if (TempResult2 > 50000) TempResult2 = TempResult2 - 62054; //Überlauf der CATCH TDCs
-
-                hCherenkovTDC->Fill(TempResult2);
-
-                if ( (TempResult2 > -1600) && (TempResult2 < -1400) ) {
-                    NOfTDCInWindow++;
-                }
-            }
-        }
-        //C end
-
-        //TestDetector start
-        if (EventBlock.Events.at(i).TestDetectorADC != NoValuePresent) {
-            hTestDetectorADC->Fill(EventBlock.Events.at(i).TestDetectorADC);
-        }
-
-        if (EventBlock.Events.at(i).TestDetectorTDC.size() > 0) {
-            for (int k=0; k< EventBlock.Events.at(i).TestDetectorTDC.size(); k++) {
-                double TempResult2 = ( EventBlock.Events.at(i).TestDetectorTDC.at(k)-EventBlock.Events.at(i).ReferenceRawTDCTagger );
-                if (TempResult2 < -50000) TempResult2 = TempResult2 + 62054; //Überlauf der CATCH TDCs
-                if (TempResult2 > 50000) TempResult2 = TempResult2 - 62054; //Überlauf der CATCH TDCs
-
-                hTestDetectorTDC->Fill(TempResult2);
-            }
-        }
-
-        if (TestDetectorEnergySum > 10) {
-            hTestDetectorAnalysis->Fill(TestDetectorEnergySum);
-
-            if (EventBlock.Events.at(i).TestDetectorADC != NoValuePresent) {
-                hTestDetectorAnalysis2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
-
-                if (NOfTDCInWindow > 0) {
-                    hTestDetectorAnalysisCVeto2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
-                }
-
-                if (NTaggerHitshighE > 0) {
-                    hTestDetectorAnalysisTaggerReg2D->Fill(TestDetectorEnergySum, EventBlock.Events.at(i).TestDetectorADC);
-                }
-            }
-
-
-
-        }
-
-
-
     }
 
+    std::vector<int> CBSectorHits(4,0);
 
     //Now delete events, which have no Time or Energy information left after cuts
     int i=0;
@@ -411,6 +199,8 @@ int Do_ConstructDetectorHits() {
                     for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
                         hCBHits_VS_EventID->Fill(EventBlock.Events.at(i).EventID, AktElementNr);
                         hCBTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
+
+                        CBSectorHits.at((int)floor(AktElementNr/(720./4.)))++;
                     }
                     break;
                 case 2: //PID
@@ -419,31 +209,6 @@ int Do_ConstructDetectorHits() {
                     }
                     for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
                         hPIDTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
-                    }
-                    break;
-                case DetectorIDBaF:
-                    if (EventBlock.Events.at(i).HitElements.at(k).Energy != NoValuePresent) {
-                        hBaFChEnergy->Fill( EventBlock.Events.at(i).HitElements.at(k).Energy, AktElementNr );
-                    }
-                    for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
-                        hBaFTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
-                        hBaFHits_VS_EventID->Fill(EventBlock.Events.at(i).EventID, AktElementNr);
-                    }
-                    break;
-                case DetectorIDTAPSVeto:
-                    if (EventBlock.Events.at(i).HitElements.at(k).Energy != NoValuePresent) {
-                        hTAPSVetoChEnergy->Fill( EventBlock.Events.at(i).HitElements.at(k).Energy, AktElementNr );
-                    }
-                    for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
-                        hTAPSVetoTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
-                    }
-                    break;
-                case DetectorIDPbWO:
-                    if (EventBlock.Events.at(i).HitElements.at(k).Energy != NoValuePresent) {
-                        hPbWOChEnergy->Fill( EventBlock.Events.at(i).HitElements.at(k).Energy, AktElementNr );
-                    }
-                    for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
-                        hPbWOTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
                     }
                     break;
                 default: printf("ERROR: unexpected DetectorID\n");
@@ -457,10 +222,15 @@ int Do_ConstructDetectorHits() {
     }
 
 
-
+    printf("CBSectorHits: %8d %8d %8d %8d\n",CBSectorHits.at(0), CBSectorHits.at(1), CBSectorHits.at(2), CBSectorHits.at(3));
+    const int MinHits = 10000;
+    for (i=0;i<4;i++) {
+        if (CBSectorHits.at(i)<MinHits) {
+            DiscardActualEventBlockDueToCBHits = -1;
+            printf("WARNING: This EventBlock will be discarded tue to low hits in CB. Section %d has only %d hits.\n", i, CBSectorHits.at(i));
+        }
+    }
 
     return 0;
 }
-
-
 

@@ -71,47 +71,54 @@ int SaveSpectraAfterToDisc() {
     hMesonThetaLab_VS_EventID->Write();*/
     hMissingMassCombinedSignal->Write();
     hCountNumberOfHistos->Write();
+    hDroppedEvents->Write();
     hTaggerScalerAccum->Write();
     hTaggerTime->Write();
     hLiveTimeAccum->Write();
     hMissingMassCombinedSignalLTCorrected->Write();
-    hMissingMassCombinedSignalLTCorrectedP->Write();
-    hMissingMassCombinedSignalLTCorrectedM->Write();
+    hMissingMassCombinedSignalLTCorrectedFP->Write();
+    hMissingMassCombinedSignalLTCorrectedFM->Write();
+    hMissingMassCombinedSignalLTCorrectedTP->Write();
+    hMissingMassCombinedSignalLTCorrectedTM->Write();
     hTaggerScalerAccumLTCorrected->Write();
     hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff->Write();
     hTaggerScalerAccumPhotonsLTCorrected->Write();
+    hTaggerScalerAccumPhotonsFobsLTCorrected->Write();
     hBeamPol->Write();
-    hTargetPol->Write();
+    hTargetPolF->Write();
+    hTargetPolT->Write();
     hTaggEffAbs->Write();
     hTaggEffAbsAllMesons->Write();
     f->Close();
     printf("INFO: Completed writing histograms to ROOT file.\n");
 
    /* HINT: 08.08.2013: works only, if there is not ROOT App startet yet (-b mode), why, I don't know.
-    *
-    printf("INFO: Started saving histograms.\n");
-    sprintf(TempChar, "%s/%s_CBHits.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
-    printf("INFO: Output to: %s\n",TempChar);
-    TCanvas *c = new TCanvas("c");
-    hCBHits_VS_EventID->Draw("COLZ");
-    c->SaveAs(TempChar);
+    */
+    if (ProgramBatchMode) {
+        printf("INFO: Started saving histograms.\n");
+        sprintf(TempChar, "%s/%s_CBHits.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        printf("INFO: Output to: %s\n",TempChar);
+        TCanvas *c = new TCanvas("c");
+        hCBHits_VS_EventID->Draw("COLZ");
+        c->SaveAs(TempChar);
 
-    hMesonPhi_VS_EventID->Draw("COLZ");
-    sprintf(TempChar, "%s/%s_MesonPhi.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
-    c->SaveAs(TempChar);
+        hMesonPhi_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%s_MesonPhi.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        c->SaveAs(TempChar);
 
-    hMesonThetaLab_VS_EventID->Draw("COLZ");
-    sprintf(TempChar, "%s/%s_MesonTheta.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
-    c->SaveAs(TempChar);
+        hMesonThetaLab_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%s_MesonTheta.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        c->SaveAs(TempChar);
 
-    hMissingMassCombinedSignalLTCorrected->Draw("COLZ");
-    sprintf(TempChar, "%s/%s_MissMass.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
-    c->SaveAs(TempChar);
+        hMissingMassCombinedSignalLTCorrected->Draw("COLZ");
+        sprintf(TempChar, "%s/%s_MissMass.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        c->SaveAs(TempChar);
 
 
-    c->Close();
-    delete c;
-    *
+        c->Close();
+        delete c;
+    }
+    /*
     */
 }
 

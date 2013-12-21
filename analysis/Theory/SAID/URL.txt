@@ -1,0 +1,6 @@
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=F&iv=A&il=0&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=F&iv=A&il=1&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=F&iv=A&il=2&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=T&iv=A&il=0&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=T&iv=A&il=1&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005
+http://gwdac.phys.gwu.edu/cgi-bin/go3pr?sl=SN11&rt=1&ot=T&iv=A&il=2&ii=3&iu=180&fv=W&fn=1073.362040&jpeg=GO99&u=995&l=1005

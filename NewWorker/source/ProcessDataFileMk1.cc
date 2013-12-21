@@ -7,7 +7,6 @@
 # include <PhysicsAnalysis.cc>
 */
 
-
 int ProcessDataFileMk1() {
     StoredInfo *ptrN=(StoredInfo*)buffer;//caste Buffer zum String
     // unsigned short int *ptrs=(unsigned short int*)buffer;//caste Buffer zum short int
@@ -34,6 +33,7 @@ int ProcessDataFileMk1() {
      EventBlock.Scalers.reserve(1000); //Max number of scaler information per scaler read
      Clear_EventBlock();
      int DiscardActualEventBlock = 0; //if set to -1, then the act EventBlock will not be analysed
+     DiscardActualEventBlockDueToCBHits = 0;
 
 
      int CancelProcessing = 0;
@@ -62,7 +62,7 @@ int ProcessDataFileMk1() {
                  printf("Found End Header buffer. \n\n");
                  i=i+BLOCKSIZE4;
                  if (i<NBytesLastRead) {
-                     printf("Fehler: Startmarkierung des ersten Event Buffers gefunden?: %x\n",ptrN[i].AsInt);
+                     printf("Fehler: start marker of first event buffer found?: %x\n",ptrN[i].AsInt);
                  } else {
                      printf("INFO: Correct: file ended.\n");
                  }
@@ -96,7 +96,6 @@ int ProcessDataFileMk1() {
                          printf("WARNING: Event Nr not consecutive! (AnzahlEvents: %d, act: %d, before: %d) THIS EventBlock will be discarded.\n", AnzahlEvents, AktEventNr, AktEventNrBefore);
                      }
                      AktEventNrBefore = AktEventNr;
-
 
                      int ei = 1; //Zähler für das Event, ei==0 ist die Event Nr
                      int TempCancelLoop = 0;
@@ -173,23 +172,24 @@ int ProcessDataFileMk1() {
 
                                  if (HitPresent >= 0) { //Information about this elem does already exist
                                      switch (AktADCTypeID) {
-                                     case 0: //ADC
+                                     case ADCTypeIDADC: //ADC
                                          if (TempEvent.HitElements.at(HitPresent).RawADC == NoValuePresent) {
                                              //Add ADC information to existing TDC information
-                                             if (TempEvent.HitElements.at(HitPresent).DetectorID == 1) { //Activate Multihit ADC for CB
+                                             if (TempEvent.HitElements.at(HitPresent).DetectorID == DetectorIDCB) { //Activate Multihit ADC for CB
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCMultiValue;
                                                  ei = ei+2; //Skip the next two entries because the are already included
                                              } else {
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCValue;
                                              }
                                          } else {
-                                             Printf("ERROR: ADC value occured where it is not expected.");
+                                             Printf("ERROR: ADC value occured where it is not expected. EventID: %d",AktEventNr );
                                              Printf("       Details: %d %d %d %d", AktADCDetectorID, AktADCElementID, AktADCTypeID, AktADCValue);
-                                             Printf("       %8x", ptrN[(i+bi+ei)].AsInt);
+                                             printf("       ADC Value already assigned: %d\n",TempEvent.HitElements.at(HitPresent).RawADC);
+                                             Printf("       32-bit Raw: %8x  FilePointer: %8x", ptrN[(i+bi+ei)].AsInt, (AbsFilePosInt+i+bi+ei)*sizeof(int));
                                              AnzahlDateiFehler++;
                                          }
                                          break;
-                                     case 1: //TDC
+                                     case ADCTypeIDTDC: //TDC
                                          TempEvent.HitElements.at(HitPresent).RawTDC.push_back(AktADCValue); //Add TDC information to existing ADC value
                                          break;
                                      default: Printf("Error during analysis. Unknown ADCType.");
@@ -208,7 +208,7 @@ int ProcessDataFileMk1() {
                                      TempHit.Energy = NoValuePresent;
                                      TempHit.ParticipatingClusterID = -1;
                                      switch (AktADCTypeID) {
-                                     case 0: //if ADC info comes
+                                     case ADCTypeIDADC: //if ADC info comes
                                          if (AktADCDetectorID == 1) { //Activate Multihit ADC for CB
                                              TempHit.RawADC = AktADCMultiValue;
                                              ei = ei+2; //Skip the next to entries because the are already included
@@ -216,7 +216,7 @@ int ProcessDataFileMk1() {
                                              TempHit.RawADC = AktADCValue;
                                          }
                                          break;
-                                     case 1: //if TDC info comes
+                                     case ADCTypeIDTDC: //if TDC info comes
                                          TempHit.RawTDC.push_back(AktADCValue);
                                          break;
                                      default: Printf("Error during analysis.");
@@ -245,10 +245,12 @@ int ProcessDataFileMk1() {
                              if (!ProgramOnlyFileCheckMode) {
                                  //TThread::Lock();
                                  Do_ConstructDetectorHits(); //Use Raw data in EventBlock and apply the calibration to it
-                                 Do_CBClusterFinding(); //Use calibrated data from EventBlock and fill EventBlock.Events.at(i).CBClusters
-                                 Do_MarkChargedClusters(); //Diesmal mit Clustern und PID Elementen
-                                 Do_FillNHitsHistograms();
-                                 Do_PhysicsAnalysis();
+                                 if (!DiscardActualEventBlockDueToCBHits) { //If Hits in CB are okay
+                                     Do_CBClusterFinding(); //Use calibrated data from EventBlock and fill EventBlock.Events.at(i).CBClusters
+                                     Do_MarkChargedClusters(); //Diesmal mit Clustern und PID Elementen
+                                     Do_FillNHitsHistograms();
+                                     Do_PhysicsAnalysis();
+                                 }
                                  //TThread::UnLock();
                              }
                              //if (AnzahlScalerBuffer > 30) {
@@ -261,6 +263,7 @@ int ProcessDataFileMk1() {
                              //gSystem->ProcessEvents();
                          }
                          DiscardActualEventBlock = 0;
+                         DiscardActualEventBlockDueToCBHits = 0;
 
                          //Clear the event block data afer analysis
                          Clear_EventBlock();
@@ -269,7 +272,7 @@ int ProcessDataFileMk1() {
                          float TimeElapsed = ((float)(clock()-Time_LastTime))/CLOCKS_PER_SEC;
                          double TempStatus = (AbsFilePosInt+i)*1./NIntsInRawFile*100.;
 
-                         printf("Progress: %3.1f %%  Speed: Number of events %d in %.1f sec = %.0f events/sec. \r", TempStatus,
+                         printf("Progress: %3.1f %%  Speed: Number of events %d in %.1f sec = %.0f events/sec. \n", TempStatus,
                                 (AnzahlEvents-AnzahlEvents_LastTime), TimeElapsed, (AnzahlEvents-AnzahlEvents_LastTime)/TimeElapsed);
                          fflush(stdout);
 

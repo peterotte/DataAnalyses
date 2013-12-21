@@ -9,5 +9,5 @@ ElectronBeamEnergy: 450.1
 CutHitsOutOfRange: -1.
 
 #paths with / at the end!
-OutputPath: /datapool/2010_09_pi0/taggeff/output/
-InputPathRawData: /datapool/2010_09_pi0/taggeff/
+OutputPath: /datapool/2010_09/taggeff/output/
+InputPathRawData: /datapool/2010_09/taggeff/

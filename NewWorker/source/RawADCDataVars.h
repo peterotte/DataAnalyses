@@ -59,9 +59,6 @@ struct TRawADCData {
     TDetector Tagger;    //Detector ID = 0, see GeneralConstants.h for IDs
     TDetector CB;        //Detector ID = 1
     TDetector PID;       //Detector ID = 2
-    TDetector BaF;       //Detector ID = 3
-    TDetector TAPSVeto;  //Detector ID = 4
-    TDetector PbWO;      //Detector ID = 5
     TDetector Trigger;   //Detector ID = 10
 } RawADCData;
 
@@ -95,19 +92,15 @@ int InitializeLookupTables() {
     RawADCData.Tagger.TimeOffsetNS = 0;
     RawADCData.CB.TimeOffsetNS = 0;
     RawADCData.PID.TimeOffsetNS = 0;
-    RawADCData.BaF.TimeOffsetNS = 0;
-    RawADCData.TAPSVeto.TimeOffsetNS = 0;
-    RawADCData.PbWO.TimeOffsetNS = 0;
-    RawADCData.Trigger.TimeOffsetNS = 0;
 
     //Create Experiment Detectors
-    LookupTableADC.resize(0xffff);
+    LookupTableADC.resize(0x10000); //To cover the range vom 0 to 0xffff
     for (int tempI = 0; tempI<LookupTableADC.size(); tempI++) {
         LookupTableADC.at(tempI).DetectorID = -1;
         LookupTableADC.at(tempI).ElementID = -1;
         LookupTableADC.at(tempI).TypeID = -1;
     }
-    LookupTableScaler.resize(0xffff);
+    LookupTableScaler.resize(0x10000); //To cover the range vom 0 to 0xffff
     for (int tempI = 0; tempI<LookupTableScaler.size(); tempI++) {
         LookupTableScaler.at(tempI).DetectorID = -1;
         LookupTableScaler.at(tempI).ElementID = -1;

@@ -1,0 +1,13 @@
+#Mk1 Data Format
+RawDataFormat: 1
+
+#There are two scaler blocks in the data: length of the first and length of the second
+SplitScaler:  128  364
+
+ElectronBeamEnergy: 450.1
+
+CutHitsOutOfRange: -1.
+
+#paths with / at the end!
+OutputPath: /datapool/2011_02/outputF/
+InputPathRawData: /datapool/2011_02/

@@ -60,7 +60,7 @@ int ProcessDataFileMk2() {
                  printf("Found End Header buffer. \n\n");
                  i=i+BLOCKSIZE4;
                      if (i<NBytesLastRead) {
-                     printf("Fehler: Startmarkierung des ersten Event Buffers gefunden?: %x\n",ptrN[i].AsInt);
+                     printf("Fehler: start marker of first event buffer found?: %x\n",ptrN[i].AsInt);
                  } else {
                          printf("INFO: Correct: file ended.\n");
                  }
@@ -131,7 +131,7 @@ int ProcessDataFileMk2() {
                                          if (RawADCData.UngatedLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.UngatedLiveCounter = ptrN[i+bi+ei+si+1].AsInt;
                                          if (RawADCData.TaggerLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.TaggerLiveCounter = ptrN[i+bi+ei+si+1].AsInt;
 
-                                         if (LookupTableScaler.at(ptrN[i+bi+ei+si].AsInt).DetectorID != -1) { //Only of defined in config files
+                                         if (LookupTableScaler.at(ptrN[i+bi+ei+si].AsInt).DetectorID != -1) { //Only if defined in config files
                                              TScalerRead TempScalerRead;
                                              TempScalerRead.DetectorID = LookupTableScaler.at(ptrN[i+bi+ei+si].AsInt).DetectorID;
                                              TempScalerRead.ElementID = LookupTableScaler.at(ptrN[i+bi+ei+si].AsInt).ElementID;
@@ -174,11 +174,6 @@ int ProcessDataFileMk2() {
                              switch (ptrN[(i+bi+ei)].AsADC.Ch) {
                                  case 1400: TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value; break;
                                  case 2000: TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value; break;
-                                 case 29192: TempEvent.ReferenceRawTDCPbWO = ptrN[(i+bi+ei)].AsADC.Value; break;
-                             case 2001: TempEvent.CherenkovTDC.push_back(ptrN[(i+bi+ei)].AsADC.Value); break;
-                             case 2002: TempEvent.TestDetectorTDC.push_back(ptrN[(i+bi+ei)].AsADC.Value); break;
-                             case 124: TempEvent.TestDetectorADC = ptrN[(i+bi+ei)].AsADC.Value; break;
-                             case 125: TempEvent.CherenkovADC = ptrN[(i+bi+ei)].AsADC.Value; break;
                              }
 
                              //hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
@@ -190,27 +185,12 @@ int ProcessDataFileMk2() {
                              int AktADCMultiValue = ptrN[(i+bi+ei+1)].AsADC.Value - ptrN[(i+bi+ei)].AsADC.Value; //Signal - Pedestal
 
                              //CB ADC: Debug single ADC Sums
-                             if ( (AktADCDetectorID == 1) /*CB*/ && (AktADCTypeID == 0) /*ADC information*/ ) {
-                                 hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
-                                 hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
-                                 hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
+//                             if ( (AktADCDetectorID == 1) /*CB*/ && (AktADCTypeID == 0) /*ADC information*/ ) {
+//                                 hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
+//                                 hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
+//                                 hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
+//                             }
 
-                                 if (
-                                        ( ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
-                                        ( ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch)
-                                    ) {
-                                     printf("Error in Multi ADC numbering.\n");
-                                 }
-
-                             }
-
-                             //MWPC ADC: Debug single ADC Sums
-                             if ( ( (ptrN[(i+bi+ei)].AsADC.Ch >= 5000) && (ptrN[(i+bi+ei)].AsADC.Ch < 5600) ) /*WC ADC*/ ) {
-                                 hMWPCChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, ptrN[(i+bi+ei)].AsADC.Ch-5000);
-                                 hMWPCChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, ptrN[(i+bi+ei+1)].AsADC.Ch-5000);
-                                 hMWPCChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, ptrN[(i+bi+ei+2)].AsADC.Ch-5000);
-                                 ei = ei+2;
-                             }
 
                              if (AktADCDetectorID != -1) { //Only, if the ADC value is defined by configuration files.
                                  //Now check, whether the element is already represented with some data (ADC/TDC) in this Event(TempEvent)
@@ -228,6 +208,12 @@ int ProcessDataFileMk2() {
                                              //Add ADC information to existing TDC information
                                              if (TempEvent.HitElements.at(HitPresent).DetectorID == DetectorIDCB) { //Activate Multihit ADC for CB
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCMultiValue;
+
+                                                 //Check for correct Dataformat
+                                                 if ( (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
+                                                      (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch) ) {
+                                                     printf("ERROR: MultiHit ADC Index wrong: %d %d %d\n",ptrN[(i+bi+ei)].AsADC.Ch, ptrN[(i+bi+ei+1)].AsADC.Ch, ptrN[(i+bi+ei+2)].AsADC.Ch);
+                                                 }
                                                  ei = ei+2; //Skip the next two entries because the are already included
                                              } else {
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCValue;
@@ -236,7 +222,7 @@ int ProcessDataFileMk2() {
                                              Printf("ERROR: ADC value occured where it is not expected. EventID: %d",AktEventNr );
                                              Printf("       Details: %d %d %d %d", AktADCDetectorID, AktADCElementID, AktADCTypeID, AktADCValue);
                                              printf("       ADC Value already assigned: %d\n",TempEvent.HitElements.at(HitPresent).RawADC);
-                                             Printf("       32-bit Raw: %8x  FilePointer: %8x", ptrN[(i+bi+ei)].AsInt, (i+bi+ei)*sizeof(int));
+                                             Printf("       32-bit Raw: %8x  FilePointer: %8x", ptrN[(i+bi+ei)].AsInt, (AbsFilePosInt+i+bi+ei)*sizeof(int));
                                              AnzahlDateiFehler++;
                                          }
                                          break;
@@ -259,15 +245,21 @@ int ProcessDataFileMk2() {
                                      TempHit.Energy = NoValuePresent;
                                      TempHit.ParticipatingClusterID = -1;
                                      switch (AktADCTypeID) {
-                                     case 0: //if ADC info comes
+                                     case ADCTypeIDADC: //if ADC info comes
                                          if (AktADCDetectorID == 1) { //Activate Multihit ADC for CB
+                                             //Check for correct Dataformat
+                                             if ( (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
+                                                  (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch) ) {
+                                                 printf("ERROR: MultiHit ADC Index wrong: %d %d %d\n",ptrN[(i+bi+ei)].AsADC.Ch, ptrN[(i+bi+ei+1)].AsADC.Ch, ptrN[(i+bi+ei+2)].AsADC.Ch);
+                                             }
+
                                              TempHit.RawADC = AktADCMultiValue;
                                              ei = ei+2; //Skip the next to entries because the are already included
                                          } else {
                                              TempHit.RawADC = AktADCValue;
                                          }
                                          break;
-                                     case 1: //if TDC info comes
+                                     case ADCTypeIDTDC: //if TDC info comes
                                          TempHit.RawTDC.push_back(AktADCValue);
                                          break;
                                      default: Printf("Error during analysis.");
@@ -319,7 +311,7 @@ int ProcessDataFileMk2() {
                          float TimeElapsed = ((float)(clock()-Time_LastTime))/CLOCKS_PER_SEC;
                          double TempStatus = (AbsFilePosInt+i)*1./NIntsInRawFile*100.;
 
-                         printf("Progress: %3.1f %%  Speed: Number of events %d in %.1f sec = %.0f events/sec. \r", TempStatus,
+                         printf("Progress: %3.1f %%  Speed: Number of events %d in %.1f sec = %.0f events/sec. \n", TempStatus,
                                 (AnzahlEvents-AnzahlEvents_LastTime), TimeElapsed, (AnzahlEvents-AnzahlEvents_LastTime)/TimeElapsed);
                          fflush(stdout);
 
