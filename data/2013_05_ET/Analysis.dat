@@ -8,7 +8,6 @@ CutHitsOutOfRange: -1.
 RequireMinHitsCBBlock: 500
 RequireBeamHelicityPresent: 0
 
-
 #paths with / at the end!
-OutputPath: /datapool/2013_11/output/
-InputPathRawData: /datapool/2013_11/
+OutputPath: /datapool/2013_05_pi0/outputET/
+InputPathRawData: /datapool/2013_05_pi0/

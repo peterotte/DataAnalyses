@@ -63,6 +63,14 @@ int ReadAnalysisConfigurationFile() {
                 CutHitsOutOfRange = round(SingleFloatToRead);
                 Printf("Info: CutHitsOutOfRange: %d", CutHitsOutOfRange );
             }
+            if (!strcmp(Buffer, "RequireMinHitsCBBlock:")) {
+                RequireMinHitsCBBlock = round(SingleFloatToRead);
+                Printf("Info: RequireMinHitsCBBlock: %d", RequireMinHitsCBBlock );
+            }
+            if (!strcmp(Buffer, "RequireBeamHelicityPresent:")) {
+                RequireBeamHelicityPresent = round(SingleFloatToRead);
+                Printf("Info: RequireBeamHelicityPresent: %d", RequireBeamHelicityPresent );
+            }
 
 
         }

@@ -32,6 +32,7 @@ int ProcessDataFileMk2() {
      EventBlock.Scalers.reserve(1000); //Max number of scaler information per scaler read
      Clear_EventBlock();
      int DiscardActualEventBlock = 0; //if set to -1, then the act EventBlock will not be analysed
+     DiscardActualEventBlockDueToCBHits = 0;
 
 
      int CancelProcessing = 0;
@@ -288,10 +289,12 @@ int ProcessDataFileMk2() {
                              if (!ProgramOnlyFileCheckMode) {
                                  //TThread::Lock();
                                  Do_ConstructDetectorHits(); //Use Raw data in EventBlock and apply the calibration to it
-                                 Do_CBClusterFinding(); //Use calibrated data from EventBlock and fill EventBlock.Events.at(i).CBClusters
-                                 Do_MarkChargedClusters(); //Diesmal mit Clustern und PID Elementen
-                                 Do_FillNHitsHistograms();
-                                 Do_PhysicsAnalysis();
+                                 if (!DiscardActualEventBlockDueToCBHits) { //If Hits in CB are okay
+                                     Do_CBClusterFinding(); //Use calibrated data from EventBlock and fill EventBlock.Events.at(i).CBClusters
+                                     Do_MarkChargedClusters(); //Diesmal mit Clustern und PID Elementen
+                                     Do_FillNHitsHistograms();
+                                     Do_PhysicsAnalysis();
+                                 }
                                  //TThread::UnLock();
                              }
                              //if (AnzahlScalerBuffer > 30) {
@@ -303,6 +306,7 @@ int ProcessDataFileMk2() {
                              //gSystem->ProcessEvents();
                          }
                          DiscardActualEventBlock = 0;
+                         DiscardActualEventBlockDueToCBHits = 0;
 
                          //Clear the event block data afer analysis
                          Clear_EventBlock();

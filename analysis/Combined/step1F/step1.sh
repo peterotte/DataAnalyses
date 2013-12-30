@@ -4,4 +4,4 @@
 #export PATH=$PATH:/cern/root/bin
 
 
-root -l -b -q SubBackgroundBut.C
+root -l -b -q DoPhysicsF.C

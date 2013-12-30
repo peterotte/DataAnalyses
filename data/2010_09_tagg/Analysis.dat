@@ -8,6 +8,9 @@ ElectronBeamEnergy: 450.1
 
 CutHitsOutOfRange: -1.
 
+RequireMinHitsCBBlock: 0
+RequireBeamHelicityPresent: 0
+
 #paths with / at the end!
 OutputPath: /datapool/2010_09/taggeff/output/
 InputPathRawData: /datapool/2010_09/taggeff/

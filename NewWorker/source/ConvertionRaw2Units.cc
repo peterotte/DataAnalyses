@@ -222,11 +222,11 @@ int Do_ConstructDetectorHits() {
     }
 
 
-    printf("CBSectorHits: %8d %8d %8d %8d\n",CBSectorHits.at(0), CBSectorHits.at(1), CBSectorHits.at(2), CBSectorHits.at(3));
-    const int MinHits = 10000;
+//    printf("CBSectorHits: %8d %8d %8d %8d\n",CBSectorHits.at(0), CBSectorHits.at(1), CBSectorHits.at(2), CBSectorHits.at(3));
     for (i=0;i<4;i++) {
-        if (CBSectorHits.at(i)<MinHits) {
+        if (CBSectorHits.at(i) < RequireMinHitsCBBlock) {
             DiscardActualEventBlockDueToCBHits = -1;
+            printf("CBSectorHits: %8d %8d %8d %8d\n",CBSectorHits.at(0), CBSectorHits.at(1), CBSectorHits.at(2), CBSectorHits.at(3));
             printf("WARNING: This EventBlock will be discarded tue to low hits in CB. Section %d has only %d hits.\n", i, CBSectorHits.at(i));
         }
     }

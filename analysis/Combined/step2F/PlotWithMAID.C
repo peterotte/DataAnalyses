@@ -1,6 +1,6 @@
 const Int_t NumberOfThetaBins = 181;
 
-void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh, Double_t AScaleFactor) {
+void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh) {
 	if ((ATaggCh < 0) || (ATaggCh > 256)) {
 		printf("wrong ATaggCh range.");
 		return;
@@ -44,9 +44,9 @@ void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh, Double_t ASc
 	for (Int_t i=0;i<NumberOfThetaBins;i++) {
 		x[i] = i;
 		if (AVarSelect == 0) {
-			y[i] = AScaleFactor*MyTreeT[i];
+			y[i] = MyTreeT[i];
 		} else {
-			y[i] = AScaleFactor*MyTreeF[i];
+			y[i] = MyTreeF[i];
 		}
 		//printf("%f ",y[i]);
 	}
@@ -59,12 +59,12 @@ void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh, Double_t ASc
 	gr->Draw("SAME"); // and draw it without an axis
 }
 
-void PlotFullTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t AGammaEnergy, Double_t AScaleFactor) {
+void PlotFullTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t AGammaEnergy) {
 	new TCanvas();
 	TH1D *sdf = new TH1D("sd","sdf",18,0,NumberOfThetaBins);
 	sdf->Draw();
 	sdf->GetYaxis()->SetRangeUser(-1,1);
-	PlotTorF(AModellSelect, AVarSelect, AGammaEnergy, AScaleFactor);
+	PlotTorF(AModellSelect, AVarSelect, AGammaEnergy);
 }
 
 
@@ -101,19 +101,18 @@ void PlotSvenF(Int_t ABinN) {
 	in1.close();
 }
 
-void ShowResult(TH2D* h2, Int_t ATaggCh, Double_t AScaleFactor){
+void ShowResult(TH2D* h2, Int_t ATaggCh, Int_t ANBinsToCombine){
 	char tempStr[200]; //Für Strings zusammenklopfen
 
 	TH1D *h1P;
 	sprintf(tempStr,"h1 for TaggCh %i", ATaggCh);
 	sprintf(tempStr,"h1forTaggCh%i", ATaggCh);
 	printf("h2: %8x  %s from: %d\n",h2, tempStr, ATaggCh);
-	h1P = h2->ProjectionY(tempStr,ATaggCh,ATaggCh+9);
+	h1P = h2->ProjectionY(tempStr,ATaggCh,ATaggCh+ANBinsToCombine-1);
 
-	h1P->Scale(1./10.);
+	h1P->Scale(1./(1.*ANBinsToCombine));
 	sprintf(tempStr,"h1_%i", ATaggCh);
 	h1P->SetName(tempStr);
-	h1P->Scale(AScaleFactor);
 	//h1P->SetMarkerStyle(4);
 	h1P->GetYaxis()->SetRangeUser(-1.2,1.2);
 	h1P->Draw();
@@ -128,12 +127,9 @@ void ShowResult(TH2D* h2, Int_t ATaggCh, Double_t AScaleFactor){
 	fclose(RootFilesOutput);
 */
 	
-//	PlotTorF(0, 1, ABinN*10+120,1); //Theory, T or F, ...
-//	PlotTorF(1, 1, ABinN*10+120,1); //Theory, T or F, ...
-
-	PlotTorF(0, 1, ATaggCh, 1); //Theory, MAID, T or F, ...
-	PlotTorF(1, 1, ATaggCh, 1); //Theory, SAID, T or F, ...
-	PlotTorF(2, 1, ATaggCh, 1); //Theory, MAIDDMT, T or F, ...
+	PlotTorF(0, 1, ATaggCh); //Theory, MAID, T or F, ...
+	PlotTorF(1, 1, ATaggCh); //Theory, SAID, T or F, ...
+	PlotTorF(2, 1, ATaggCh); //Theory, MAIDDMT, T or F, ...
 
 	if (ATaggCh >2) {
 	//	PlotSvenF(ABinN);
@@ -153,11 +149,12 @@ void PlotWithMAID() {
 		printf("TH2D ButDivHDivPolsFlux found at 0x%8x.\n",h2);
 	}
 	const Int_t AnzBin = 9*3;
+	const Int_t CombineNBins = 10;
 	TCanvas *c1 = new TCanvas();
 	c1->Divide(9,3);
 	for (Int_t i=0;i<AnzBin;i++) {
 		c1->cd(i+1);
-		ShowResult(h2,i*10,1.);
+		ShowResult(h2,1+i*CombineNBins, CombineNBins );
 	}
 	
 }

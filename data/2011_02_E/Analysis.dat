@@ -8,6 +8,11 @@ ElectronBeamEnergy: 450.1
 
 CutHitsOutOfRange: -1.
 
+RequireMinHitsCBBlock: 10000
+RequireBeamHelicityPresent: -1
+
+
+
 #paths with / at the end!
 OutputPath: /datapool/2011_02/outputE/
 InputPathRawData: /datapool/2011_02/

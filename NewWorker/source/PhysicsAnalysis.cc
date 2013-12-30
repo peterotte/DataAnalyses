@@ -180,7 +180,7 @@ int Do_PhysicsAnalysis () {
                                 Printf("WARNING: Unexpected Helicity Bit: %d",MyEvent.HelicityBit);
                             }
                         }
-                        if (EffHelBeam == 0) {NRejectedEvents++;}
+                        if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;}
 
 
                         if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) {
@@ -315,7 +315,9 @@ int Do_PhysicsAnalysis () {
         i++;
     }
 
-    printf("Dropped Events in Physics Analysis %d from %d\n", NRejectedEvents, NTotalEvents);
+    if (NRejectedEvents>0) {
+        printf("Dropped Events in Physics Analysis %d from %d\n", NRejectedEvents, NTotalEvents);
+    }
 
     Handle_ScalerCounts(NRejectedEvents, NTotalEvents);
 

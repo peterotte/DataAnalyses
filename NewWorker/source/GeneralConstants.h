@@ -37,6 +37,14 @@ Char_t TaggEffNormFile[1024] = ""; //Path plus Filename where to find the TaggEf
 //Setting the CutHitsOutOfRange to 0 needs some more modifications to the code and is at the moment not yet tested.
 int CutHitsOutOfRange = -1; //If set to 0, no hits will be deleted. if set to -1, hits which do not mach the ranges, defined by config file, will be deleted.
 
+//Correct for Missing Hits in CB
+//if ADC does not match TDC information then skip the complete Block
+int RequireMinHitsCBBlock = 0; //default will not drop any events
+
+//For analysis of F
+int RequireBeamHelicityPresent = -1; //default: requires BeamHelicity information present
+
+
 //PID Constants
 double PIDOffset = 0; //Phi angle to add to PID phi after loading
 double PIDCBPhiDelta = 0.; //Correlation between CB Cluster and PID Element in Phi, sigma of Delta_CB_PID plot is 7.2 degree
