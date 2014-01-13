@@ -1,0 +1,13 @@
+#Mk2 Data Format
+RawDataFormat: 2
+
+ElectronBeamEnergy: 450.1
+
+CutHitsOutOfRange: -1.
+
+RequireMinHitsCBBlock: 0
+RequireBeamHelicityPresent: 0
+
+#paths with / at the end!
+OutputPath: /datapool/2014_01/output/
+InputPathRawData: /datapool/2014_01/

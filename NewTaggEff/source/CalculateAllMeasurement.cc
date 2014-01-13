@@ -75,6 +75,13 @@ int CombineAllMeasurements() {
     }
 
 
+    //Check for broken Tagger Channels
+    for (int i=1;i<=NTaggChs;i++) {
+        if (hMPresent->GetBinContent(i) < hMPresent->GetBinContent(hMPresent->GetMaximumBin())) {
+            printf("WARNING: (Partly) defective Tagger Ch: %d\n ", i, hMPresent->GetBinContent(i) );
+        }
+    }
+
 
     delete gROOT->FindObject("TaggEffMeanTemp"); //Used for the sum, just for temporal purposes
     TH1D *hTaggEffMeanT = hAllM->ProjectionY("TaggEffMeanTemp", 0, -1, "e"); // e = errors are computed. see: http://root.cern.ch/root/html/TH2.html#TH2:ProjectionY

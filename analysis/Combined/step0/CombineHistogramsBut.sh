@@ -9,6 +9,5 @@ hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButM.r
 
 root /datapool/home/otte/NewAnalysis/analysis/Combined/step0/CombineButPMScaled.C
 
-#hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButGes.root sumButP.root sumButM.root
-
-hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButGes.root sumButPScaled.root sumButM.root
+#hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumBut.root sumButP.root sumButM.root
+hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumBut.root sumButPScaled.root sumButM.root

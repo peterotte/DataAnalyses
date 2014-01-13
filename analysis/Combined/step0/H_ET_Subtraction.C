@@ -4,7 +4,8 @@
 
 const char Str_RootFilesHResultsFT[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT.root";
 const char Str_RootFilesHResultsET[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_ET.root";
-const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT_substracted_ET.root"; 
+//const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT_substracted_ET.root"; 
+const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH.root"; 
 
 // Number of Photons (Livetime and Taggeff corrected) FT / ET
 const double ScaleFactor = 5.17E11 / 1.65E11;

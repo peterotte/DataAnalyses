@@ -1,7 +1,7 @@
 # Information for TaggEff Analysis
 
-InputPath:   /datapool/2013_04_pi0/taggeff/output
-OutputPath:  /datapool/2013_04_pi0/taggeff/output/results
+InputPath:   /datapool/2013_05_pi0/taggeff/output
+OutputPath:  /datapool/2013_05_pi0/taggeff/output/results
 
 # 9582.8 ticks per 1 second
 TaggerClockSpeed: 9582.8

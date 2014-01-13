@@ -211,10 +211,10 @@ int ProcessDataFileMk2() {
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCMultiValue;
 
                                                  //Check for correct Dataformat
-                                                 if ( (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
-                                                      (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch) ) {
-                                                     printf("ERROR: MultiHit ADC Index wrong: %d %d %d\n",ptrN[(i+bi+ei)].AsADC.Ch, ptrN[(i+bi+ei+1)].AsADC.Ch, ptrN[(i+bi+ei+2)].AsADC.Ch);
-                                                 }
+                                                 //if ( (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+1)].AsADC.Ch) ||
+                                                 //     (ptrN[(i+bi+ei)].AsADC.Ch != ptrN[(i+bi+ei+2)].AsADC.Ch) ) {
+                                                 //    printf("ERROR: MultiHit ADC Index wrong: %d %d %d\n",ptrN[(i+bi+ei)].AsADC.Ch, ptrN[(i+bi+ei+1)].AsADC.Ch, ptrN[(i+bi+ei+2)].AsADC.Ch);
+                                                 //}
                                                  ei = ei+2; //Skip the next two entries because the are already included
                                              } else {
                                                  TempEvent.HitElements.at(HitPresent).RawADC = AktADCValue;

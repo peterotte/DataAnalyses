@@ -23,8 +23,13 @@ NewTaggEff
             SelectedBeamtime (0, 1, 2)
             -b    ProgramBatchMode
             -d    ProgramDebugMode
-            -new  WriteAbsTaggEffNew
+            -new  WriteAbsTaggEffNew -> Wenn die Spalte BeamPolDegree in RunsMetaInformation.dat neu mit dem Wert 1/LaddP2 Ratio gefüllt werden soll
             -r    ReplaceRunMetaInfoFile
+- Programm 1x für jede Strahlzeit ausführen:
+  NewTaggEff/build/bin/NewWorker -r -b 0
+  NewTaggEff/build/bin/NewWorker -r -b 1
+  NewTaggEff/build/bin/NewWorker -r -b 2
+
 
 
 analysis
@@ -32,6 +37,8 @@ analysis
   - beampolshape: Gamma-Strahlpolisation (Helizitätsübertrag)
   - step0: Fasst die Analysierten Dateien Strahlzeitweise zusammen und schreibt sie 
            nach /datapool in die jeweiligen Unterverzeichnisse als sum.root
+           - Nimmt auch die Skalierung der Positiven But-TargetStrahlzeit vor
+           - Macht den Empty Target Abzug beim Wasserstoff
   - step1: Zufälligen Untergrund vom Signal abziehen und 
            Normierungsfaktoren anbringen
   - step2: Darstellung

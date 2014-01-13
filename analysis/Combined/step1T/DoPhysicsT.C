@@ -48,7 +48,7 @@ void DoPhysicsT() {
 
 	//Divide by H
 	h2TempCopy[3] = (TH2D*)h2TempCopy[1]->Clone("ButDivHDivPols");
-	h2TempCopy[3]->Scale(1/0.576); //TargetPol
+	h2TempCopy[3]->Scale(1/0.627); //TargetPol
 
 	//Correction for photon flux
 	h1PhotonFluxCorrection = (TH1D*)h1PhotonFluxH->Clone("PhotonFluxCorrection");
