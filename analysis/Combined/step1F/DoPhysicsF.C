@@ -3,7 +3,8 @@
 #include <cstddef>
 
 const char Str_RootFilesButResults[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumBut.root"; 
-const char Str_RootFilesHResults[]   = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH.root"; 
+const char Str_RootFilesHResults[]   = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_Rescaled.root"; 
+//const char Str_RootFilesHResults[]   = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH.root"; 
 const char Str_RootFileBeamPolShape[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/beampolshape/output/BeamPolValues.root";
 const char Str_RootFilesResultsSignal[] = "output/results.root"; 
 
@@ -39,7 +40,6 @@ void DoPhysicsF() {
 
 	//Difference in But + and -
 	h2TempCopy[0] = (TH2D*)h2TempP->Clone("ButMissingMassSignalDiff");
-//	h2TempCopy[0]->Add(h2TempP, h2TempM, -1, 1./0.97);
 	h2TempCopy[0]->Add(h2TempP, h2TempM, -1, 1.);
 	h2TempCopy[0]->Scale(2);
 

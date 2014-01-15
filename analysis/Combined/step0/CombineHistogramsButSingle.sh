@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#export LD_LIBRARY_PATH=/cern/root/lib
-
 hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButA.root /datapool/2010_09/outputA/*.dat.root
 hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButB.root /datapool/2010_09/outputB/*.dat.root
 hadd -f /datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumButC.root /datapool/2010_09/outputC/*.dat.root

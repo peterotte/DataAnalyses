@@ -39,7 +39,7 @@ endif()
 include_directories("source" ${ROOT_INCLUDE_DIR})
 
 # construct the exe from source files
-add_executable("NewWorker" "source/Worker.cc" "source/Worker.h")
-target_link_libraries("NewWorker" ${ROOT_LIBRARIES} "-lMinuit")
+add_executable("CompareWorker" "source/Worker.cc" "source/Worker.h")
+target_link_libraries("CompareWorker" ${ROOT_LIBRARIES} "-lMinuit")
 #message("${ROOT_LIBRARIES}")
 

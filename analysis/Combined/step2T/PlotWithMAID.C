@@ -1,6 +1,66 @@
+#include <stdio.h>
+
 const Int_t NumberOfThetaBins = 181;
 
-void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh) {
+//**********************************************************************
+
+//-----------------------------------------------------------------------------
+
+#define MASS_PROTON    938.2720
+#define MASS_PIZERO    134.9766
+#define MASS2_PROTON   (MASS_PROTON*MASS_PROTON)
+#define MASS2_PIZERO   (MASS_PIZERO*MASS_PIZERO)
+
+Int_t ActualTaggCh = 0;
+Double_t ActualTaggE = 0;
+
+Double_t q0(Double_t omega_lab)
+{
+  Double_t s = MASS2_PROTON + 2.0*omega_lab*MASS_PROTON;
+  Double_t root_s = TMath::Sqrt(s);
+  Double_t epsilon = (s + MASS2_PIZERO - MASS2_PROTON)/(2.0*root_s);
+  if(epsilon < MASS_PIZERO) return q0(MASS_PIZERO +
+MASS2_PIZERO/(2.0*MASS_PROTON));
+  Double_t q = TMath::Sqrt(epsilon*epsilon - MASS2_PIZERO);
+
+  return q;
+}
+
+Double_t omega_cm(Double_t omega_lab)
+{
+  Double_t s = MASS2_PROTON + 2.0*omega_lab*MASS_PROTON;
+  Double_t root_s = TMath::Sqrt(s);
+  Double_t omega = (s - MASS2_PROTON)/(2.0*root_s);
+
+  return omega;
+}
+
+Double_t rho_0(Double_t omega_lab) {
+  Double_t q = q0(omega_lab);
+  Double_t k = omega_cm(omega_lab);
+
+  return (q/k);
+}
+
+Double_t rho() {
+	Double_t omega_lab = ActualTaggE;
+	Double_t q = q0(omega_lab);
+	Double_t k = omega_cm(omega_lab);
+
+	//printf("omega_lab: %f\tq: %f\tk:%f\n", omega_lab, q, k);
+
+	return (q/k);
+}
+
+Double_t rho_1(Double_t* x, Double_t* Param) {
+  Double_t q = q0(x[0]);
+  Double_t k = omega_cm(x[0]);
+
+  return (q/k);
+}
+
+//**********************************************************************
+void PlotModellTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh, Int_t APlotAsymTimesDSG) {
 	if ((ATaggCh < 0) || (ATaggCh > 256)) {
 		printf("wrong ATaggCh range.");
 		return;
@@ -11,32 +71,24 @@ void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh) {
 	
 	Double_t MyTreeF[NumberOfThetaBins];
 	Double_t MyTreeT[NumberOfThetaBins];
+	Double_t MyTreeDSG[NumberOfThetaBins];
 	Double_t MyTreeGammaLabE;
 	Double_t MyTreeW;
 	
 	TFile *MyRootTreeFile2;
 	if (AModellSelect == 0) {
 		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/MAID/Results.root");
-		MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
-		MyMAIDTree->SetBranchAddress("MyTreeF",&MyTreeF);
-		MyMAIDTree->SetBranchAddress("MyTreeT",&MyTreeT);
-		MyMAIDTree->SetBranchAddress("MyTreeW",&MyTreeW);
-		MyMAIDTree->GetEntry(ATaggCh);
 	} elseif (AModellSelect == 1) {
 		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/SAID/Results.root");
-		MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
-		MyMAIDTree->SetBranchAddress("MyTreeF",&MyTreeF);
-		MyMAIDTree->SetBranchAddress("MyTreeT",&MyTreeT);
-		MyMAIDTree->SetBranchAddress("MyTreeW",&MyTreeW);
-		MyMAIDTree->GetEntry(ATaggCh);
 	} else {
 		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/MAIDDMT/Results.root");
-		MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
-		MyMAIDTree->SetBranchAddress("MyTreeF",&MyTreeF);
-		MyMAIDTree->SetBranchAddress("MyTreeT",&MyTreeT);
-		MyMAIDTree->SetBranchAddress("MyTreeW",&MyTreeW);
-		MyMAIDTree->GetEntry(ATaggCh);
 	}
+	MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
+	MyMAIDTree->SetBranchAddress("MyTreeF",&MyTreeF);
+	MyMAIDTree->SetBranchAddress("MyTreeT",&MyTreeT);
+	MyMAIDTree->SetBranchAddress("MyTreeDSG",&MyTreeDSG);
+	MyMAIDTree->SetBranchAddress("MyTreeW",&MyTreeW);
+	MyMAIDTree->GetEntry(ATaggCh);
 	
 
 	printf("MAID: Gamma Energy: %f MeV\n",MyTreeGammaLabE);	
@@ -48,76 +100,106 @@ void PlotTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t ATaggCh) {
 		} else {
 			y[i] = MyTreeF[i];
 		}
-		//printf("%f ",y[i]);
+		if (APlotAsymTimesDSG) { y[i] *= MyTreeDSG[i]; }
 	}
 
 	TGraph *gr;
 	gr = new TGraph(NumberOfThetaBins,x,y);
 	gr->SetLineColor(2+AModellSelect);
 	gr->SetLineWidth(2);
-
 	gr->Draw("SAME"); // and draw it without an axis
+
+	//Draw DSG
+	TGraph *gr2;
+	gr2 = new TGraph(NumberOfThetaBins,x,MyTreeDSG);
+	gr2->SetLineColor(6);
+	gr2->SetLineWidth(2);
+//	gr2->Draw("SAME"); // and draw it without an axis
 }
 
-void PlotFullTorF(Int_t AModellSelect, Int_t AVarSelect, Int_t AGammaEnergy) {
-	new TCanvas();
-	TH1D *sdf = new TH1D("sd","sdf",18,0,NumberOfThetaBins);
-	sdf->Draw();
-	sdf->GetYaxis()->SetRangeUser(-1,1);
-	PlotTorF(AModellSelect, AVarSelect, AGammaEnergy);
-}
-
-
-
-
-void PlotSvenF(Int_t ABinN) {
-	char tempStr[200]; //Für Strings zusammenklopfen
-
-	TH1D* h1;
-	TH1D *h1 = new TH1D("h1_1","h1SignalSven",18,0,180);
-
-	strcat(tempStr, "/datapool/home/otte/results/DataOthers/Sven/SvenData/FValues_Theta10_Energy10.txt");
-	printf("Read File: %s\n", tempStr);
-	ifstream in1; // Erzeugen des inputsream-Objektes
-	in1.open(tempStr);
-	int EnergieBinNr, Energie, AnzahlKombinierterBins, ThetaBin, Theta;
-	double Wert, DWert;
-	while (-1) {
-		in1 >> EnergieBinNr >> Energie >> AnzahlKombinierterBins >> ThetaBin >> Theta >> Wert >> DWert;
-		if (!in1.good()) break; //Abort, after end of file
-
-//		printf("%i %i %i %i %i %f %f\n", EnergieBinNr, Energie, AnzahlKombinierterBins, ThetaBin, Theta, Wert, DWert);
-
-		if (EnergieBinNr == ABinN) {
-			   h1->SetBinContent(ThetaBin+1, Wert);
-			   h1->SetBinError(ThetaBin+1, DWert);
-		}
+void ScaleMeasurementByModelDSG(Int_t AModellSelect, Int_t ATaggCh, TH1D *AH) {
+	Double_t MyTreeDSG[NumberOfThetaBins];
+	Double_t MyTreeGammaLabE;
+	
+	TFile *MyRootTreeFile2;
+	if (AModellSelect == 0) {
+		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/MAID/Results.root");
+	} elseif (AModellSelect == 1) {
+		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/SAID/Results.root");
+	} else {
+		MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/MAIDDMT/Results.root");
 	}
-	h1->SetLineColor(2);
-	h1->SetMarkerColor(2);
-//	h1->SetMarkerStyle(20);
-	h1->Draw("SAME");
-
-	in1.close();
+	MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
+	MyMAIDTree->SetBranchAddress("MyTreeDSG",&MyTreeDSG);
+	MyMAIDTree->GetEntry(ATaggCh);
+	
+	for (int i=1; i<=18; i++) {
+		AH->SetBinContent(i, AH->GetBinContent(i)*MyTreeDSG[(i-1)*10+5]);
+		AH->SetBinError(i, AH->GetBinError(i)*MyTreeDSG[(i-1)*10+5]);
+	}
 }
 
-void ShowResult(TH2D* h2, Int_t ATaggCh, Int_t ANBinsToCombine){
-	char tempStr[200]; //Für Strings zusammenklopfen
+Double_t GetGammaLabE(Int_t ATaggCh) {
+	if ((ATaggCh < 0) || (ATaggCh > 256)) {
+		printf("wrong ATaggCh range.");
+		return 0;
+	}
+	
+	Double_t MyTreeGammaLabE;
+	Double_t MyTreeGammaLabE_Saved;
+	
+	TFile *MyRootTreeFile2;
+	MyRootTreeFile2 = new TFile("/datapool/home/otte/NewAnalysis/analysis/Theory/MAID/Results.root");
+	MyMAIDTree->SetBranchAddress("MyTreeGammaLabE",&MyTreeGammaLabE);
+	MyMAIDTree->GetEntry(ATaggCh);
+	MyTreeGammaLabE_Saved = MyTreeGammaLabE;
+	MyRootTreeFile2->Close();
+	
+	return MyTreeGammaLabE_Saved;
+}
+
+Double_t FitFunction(Double_t* x, Double_t* Param) {
+	Double_t Wert = x[0]*TMath::DegToRad();
+
+	Double_t cos = TMath::Cos(Wert);
+	Double_t sin = TMath::Sin(Wert);
+	return rho()*sin*(Param[0] +
+		Param[1]*cos +
+		Param[2]*(3.0*cos*cos-1.0)/2.0 +
+		Param[3]*(5.0*cos*cos*cos-3.0*cos)/2.0 
+	);
+}
+
+void ShowResult(TH2D* h2, Int_t ATaggCh, Int_t ANBinsToCombine, Int_t APlotAsymTimesDSG){
+	char tempStr[1000], tempStr2[1000]; //Für Strings zusammenklopfen
+	ActualTaggCh = ATaggCh;
+	ActualTaggE = GetGammaLabE(ATaggCh);
 
 	TH1D *h1P;
 	sprintf(tempStr,"h1 for TaggCh %i", ATaggCh);
 	sprintf(tempStr,"h1forTaggCh%i", ATaggCh);
 	printf("h2: %8x  %s from: %d\n",h2, tempStr, ATaggCh);
-	h1P = h2->ProjectionY(tempStr,ATaggCh,ATaggCh+ANBinsToCombine-1);
+	h1P = h2->ProjectionY(tempStr,1+ATaggCh,1+ATaggCh+ANBinsToCombine-1);
 
 	h1P->Scale(1./(1.*ANBinsToCombine));
-	sprintf(tempStr,"h1_%i", ATaggCh);
-	h1P->SetName(tempStr);
+	sprintf(tempStr,"h_T_%i", ATaggCh);
+	sprintf(tempStr2,"T (Ch_{Tagg}: %i, E_{lab}: %.1f MeV)", ATaggCh, ActualTaggE);
+	if (ANBinsToCombine>1) {
+		sprintf(tempStr,"h_T_%i_%i", ATaggCh, (ATaggCh+ANBinsToCombine-1));
+		sprintf(tempStr2,"T (Ch_{Tagg}: %i-%i, E_{lab}: %.1f-%.1f MeV)", ATaggCh, ATaggCh+ANBinsToCombine-1, 
+			ActualTaggE, GetGammaLabE(ATaggCh+ANBinsToCombine-1));
+	}
+	h1P->SetNameTitle(tempStr, tempStr2);
 	//h1P->SetMarkerStyle(4);
-	h1P->GetYaxis()->SetRangeUser(-.6,.6);
+	if (APlotAsymTimesDSG) {
+		h1P->GetYaxis()->SetRangeUser(-25,25);
+		ScaleMeasurementByModelDSG(2, ATaggCh, h1P);
+	} else {
+		h1P->GetYaxis()->SetRangeUser(-1.2,1.2);
+	}
 	h1P->Draw();
 	printf("Draw Tagg Ch %i data.\n",ATaggCh);
-
+	printf("\n");
 /*	FILE* RootFilesOutput ;
 	RootFilesOutput = fopen("output/F_Results.dat", "a");
 	fprintf(RootFilesOutput, "Draw %i MeV (bin %i) data.\n",ATaggCh, ATaggCh);
@@ -127,16 +209,29 @@ void ShowResult(TH2D* h2, Int_t ATaggCh, Int_t ANBinsToCombine){
 	fclose(RootFilesOutput);
 */
 	
-	//PlotTorF(0, 0, ATaggCh); //Theory, MAIDDMT, T or F, ...
-	//PlotTorF(1, 0, ATaggCh); //Theory, MAIDDMT, T or F, ...
-	PlotTorF(2, 0, ATaggCh); //Theory, MAIDDMT, T or F, ...
+	sprintf(tempStr,"DataFit%i",ATaggCh);
+	delete gROOT->FindObject(tempStr);	
+	TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4);
+	PrevFitTMP->SetParameter(0, 1);
+	PrevFitTMP->SetParameter(1, 0);
+	PrevFitTMP->SetParameter(2, 0);
+	PrevFitTMP->SetParameter(3, 0);
+//	PrevFitTMP->FixParameter(2, 0);
+	PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
+	TFitResultPtr MyFitResult = h1P->Fit(tempStr, "RFU"); //0 = do not draw, q=quiet, R = respect range, f = special min finder
 
-	if (ATaggCh >2) {
-	//	PlotSvenF(ABinN);
-	//	PlotPeterF(ABinN);
+	Int_t MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data, 
+					     //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
+	if (MyFitStatus == 0) {
+	//	MeanTaggEff = PrevFitTMP->GetParameter(0);
+	//	printf("Fit result (#%i): %f +- %f\n", k, PrevFitTMP->GetParameter(0), PrevFitTMP->GetParError(0));
+	} else {
+		printf("ERROR: Fit did not converge.\n");
 	}
 
-	printf("\n");
+	PlotModellTorF(0, 0, ATaggCh, APlotAsymTimesDSG); //Theory, MAID, T or F, ...
+//	PlotModellTorF(1, 0, ATaggCh, APlotAsymTimesDSG); //Theory, SAID, T or F, ...
+	PlotModellTorF(2, 0, ATaggCh, APlotAsymTimesDSG); //Theory, MAIDDMT, T or F, ...
 }
 
 void PlotWithMAID() {
@@ -146,7 +241,7 @@ void PlotWithMAID() {
 		printf("TH2D ButDivHDivPolsFlux not found.\n");
 		exit(1);
 	} else {
-		printf("TH2D ButDivHDivPolsFlux found at 0x%8x.\n",h2);
+		printf("TH2D ButDivHDivPolsFlux found at 0x%08x.\n",h2);
 	}
 	const Int_t AnzBin = 9*3;
 	const Int_t CombineNBins = 10;
@@ -154,7 +249,79 @@ void PlotWithMAID() {
 	c1->Divide(9,3);
 	for (Int_t i=0;i<AnzBin;i++) {
 		c1->cd(i+1);
-		ShowResult(h2,0+1+i*CombineNBins, CombineNBins );
+		ShowResult(h2,i*CombineNBins, CombineNBins, -1);
 	}
 	
 }
+
+void Plot(int fTaggCh, int fCombineNBins) {
+	char tempStr[1000]; //Für Strings zusammenklopfen
+	TFile *MyFile = new TFile("../step1T/output/results.root");
+	TH2D *h2 = (TH2D*)gROOT->FindObject("ButDivHDivPolsFlux");
+	if (!h2) {
+		printf("TH2D ButDivHDivPolsFlux not found.\n");
+		exit(1);
+	} else {
+		printf("TH2D ButDivHDivPolsFlux found at 0x%8x.\n",h2);
+	}
+	gStyle->SetOptFit(); //To get the Fit Parameters into the FitPanel.
+	sprintf(tempStr,"c_F_%i", fTaggCh);
+	if (fCombineNBins>1) sprintf(tempStr,"c_F_%i_%i", fTaggCh, fTaggCh+fCombineNBins-1);
+	delete gROOT->FindObject(tempStr);
+	TCanvas *c1 = new TCanvas(tempStr);
+	ShowResult(h2,fTaggCh, fCombineNBins, 0);
+}
+
+
+//**************************************************************************
+
+void BatchTextOutTaggCh(TH2D *h2, Int_t ATaggCh, Int_t ANBinsToCombine){
+	char tempStr[1000], tempStr2[1000]; //Für Strings zusammenklopfen
+
+	TH1D *h1P;
+	sprintf(tempStr,"h1forTaggCh%i", ATaggCh);
+	printf("%d, ", ATaggCh);
+	h1P = h2->ProjectionY(tempStr,1+ATaggCh,1+ATaggCh+ANBinsToCombine-1);
+
+	h1P->Scale(1./(1.*ANBinsToCombine));
+
+	FILE *f1;
+	sprintf(tempStr,"output/T.txt", ATaggCh);
+	f1 = fopen (tempStr,"a");
+	if (f1 == NULL) printf("ERROR: Ausgabedatei konnte nicht angelegt werden.\n");
+	
+	for (int i=1; i<=18; i++) {
+		fprintf(f1, "%d\t%f\t%f\t%f\t%f\n", ATaggCh, (i-1)*10+5, 5, h1P->GetBinContent(i), h1P->GetBinError(i));
+	}
+	fprintf(f1, "\n\n");
+	fclose(f1);
+}
+
+void BatchTextOutAll(Int_t ANBinsToCombine){
+	char tempStr[1000];
+	FILE *f1;
+	sprintf(tempStr,"output/T.txt");
+	f1 = fopen (tempStr,"w");
+	if (f1 == NULL) printf("ERROR: Ausgabedatei konnte nicht angelegt werden.\n");
+
+	fprintf(f1, "TaggerCh\tTheta\tDTheta\tAsym\tDAsym\n\n");
+	fclose(f1);
+
+
+	TFile *MyFile = new TFile("../step1T/output/results.root");
+	TH2D *h2 = (TH2D*)gROOT->FindObject("ButDivHDivPolsFlux");
+	if (!h2) {
+		printf("TH2D ButDivHDivPolsFlux not found.\n");
+		exit(1);
+	} else {
+		printf("TH2D ButDivHDivPolsFlux found at 0x%8x.\n",h2);
+	}
+
+
+	printf("Generate Output for each TaggCh: \n");
+	for (int i=0; i<=256; i++) {
+		BatchTextOutTaggCh(h2, i, ANBinsToCombine);
+	}
+	printf("\n");
+}
+

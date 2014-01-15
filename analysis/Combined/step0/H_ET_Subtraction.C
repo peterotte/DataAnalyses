@@ -4,11 +4,10 @@
 
 const char Str_RootFilesHResultsFT[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT.root";
 const char Str_RootFilesHResultsET[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_ET.root";
-//const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT_substracted_ET.root"; 
 const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH.root"; 
 
 // Number of Photons (Livetime and Taggeff corrected) FT / ET
-const double ScaleFactor = 5.17E11 / 1.65E11;
+double ScaleFactor = 0;
 
 TFile *RootFileFT, *RootFileET, *RootFile2;
 
@@ -51,12 +50,17 @@ void Scale2D(char *fTempStr) {
 }
 
 void H_ET_Subtraction() {
-	printf("Scale by: %f\n", ScaleFactor);
-
 	//Connect to all existing histograms
 	RootFileFT = new TFile(Str_RootFilesHResultsFT);
+	double SumFT = ((TH1D*)(gROOT->FindObject("PhotonFluxLTCorrected")))->Integral();
 	RootFileET = new TFile(Str_RootFilesHResultsET);
+	double SumET = ((TH1D*)(gROOT->FindObject("PhotonFluxLTCorrected")))->Integral();
 	RootFile2 = new TFile(Str_RootFilesResultsSignal, "RECREATE");
+
+	printf("Total Photonflux: %f\t%f\n", SumFT, SumET);
+	ScaleFactor = SumFT / SumET;
+	printf("Scale by: %f\n", ScaleFactor);
+
 
 	Scale2D("MissingMassCombinedSignal", ScaleFactor);
 	Scale1D("CountNumberOfHistos");
@@ -86,4 +90,6 @@ void H_ET_Subtraction() {
 	RootFile2->Close();
 
 	printf("Finished.\n");
+
+	gApplication->Terminate();
 }
