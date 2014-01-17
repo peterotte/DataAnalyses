@@ -172,7 +172,6 @@ TH2D *hMissingMassCombinedSignalLTCorrected;
 TH2D *hMissingMassCombinedPromptFP, *hMissingMassCombinedBgFP, *hMissingMassCombinedSignalFP;
 TH2D *hMissingMassCombinedPromptFM, *hMissingMassCombinedBgFM, *hMissingMassCombinedSignalFM;
 TH2D *hMissingMassCombinedSignalLTCorrectedFP, *hMissingMassCombinedSignalLTCorrectedFM;
-TH1D *hTaggerScalerAccumPhotonsFobsLTCorrected;
 TH1D *hDroppedEvents; //Counter, how many events have been skipped because of wrong MAMI Source Bit Pattern etc.
 
 //T
@@ -197,7 +196,7 @@ int InitCalibHistograms() {
     gROOT->mkdir("RawDataDetails");
     gROOT->cd("RawDataDetails");
     //Overview: All Scalers and ADCs
-    hADCOverview = new TH1D("hADCOverview","hADCOverview",10000,0,66000);
+    hADCOverview = new TH1D("hADCOverview","hADCOverview",66000,0,66000);
     hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
     //Error checks
     hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);

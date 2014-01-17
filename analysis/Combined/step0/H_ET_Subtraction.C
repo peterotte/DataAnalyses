@@ -2,9 +2,9 @@
 #include "TMath"
 #include <cstddef>
 
-const char Str_RootFilesHResultsFT[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_FT.root";
-const char Str_RootFilesHResultsET[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH_ET.root";
-const char Str_RootFilesResultsSignal[] = "/datapool/home/otte/NewAnalysis/analysis/Combined/step0/output/sumH.root"; 
+const char Str_RootFilesHResultsFT[] = "output/sumH_FT.root";
+const char Str_RootFilesHResultsET[] = "output/sumH_ET.root";
+const char Str_RootFilesResultsSignal[] = "output/sumH.root"; 
 
 // Number of Photons (Livetime and Taggeff corrected) FT / ET
 double ScaleFactor = 0;
@@ -76,7 +76,6 @@ void H_ET_Subtraction() {
 	Scale1D("TaggerScalerAccumLTCorrected");
 	Scale1D("PhotonFluxLTCorrectedWOTaggEff");
 	Scale1D("PhotonFluxLTCorrected");
-	Scale1D("PhotonFluxFobsLTCorrected");
 	Scale1D("BeamPol");
 	Scale2D("TargetPolF");
 	Scale2D("TargetPolT");

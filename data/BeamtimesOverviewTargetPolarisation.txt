@@ -1,0 +1,10 @@
+Target Polarisation orientation
+
+Sep 2010 +  -> A without information for F
+Sep 2010 -  -> B without information for F
+Sep 2010 -  -> C with information for F
+Sep 2010 +  -> D 
+Feb 2011 +  -> E 
+Feb 2011 +  -> F
+Feb 2011 -  -> G
+Feb 2011 -  -> H

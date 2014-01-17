@@ -16,11 +16,14 @@ int Do_ConstructDetectorHits() {
             if (EventBlock.Events.at(i).HitElements.at(k).DetectorID == DetectorIDTagger) {
                 hTaggerNMultiHits->Fill(EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(), AktElementNr);
 
+                //printf("Referenz: %d\n", EventBlock.Events.at(i).ReferenceRawTDCTagger);
+
                 for (int l=0; l<EventBlock.Events.at(i).HitElements.at(k).RawTDC.size(); l++ ) {
                     double TempResult = ( EventBlock.Events.at(i).HitElements.at(k).RawTDC.at(l)-EventBlock.Events.at(i).ReferenceRawTDCTagger );
                     if (TempResult < -50000) TempResult = TempResult + 62054; //Überlauf der CATCH TDCs
                     if (TempResult > 50000) TempResult = TempResult - 62054; //Überlauf der CATCH TDCs
 
+                    //printf("TempResult: %f \n",TempResult);
                     hTaggerChTDC->Fill(TempResult, AktElementNr );
 
                     TempResult = (-1*RawADCData.Tagger.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.Tagger.Elements.at(AktElementNr).TDCNSPerTick +

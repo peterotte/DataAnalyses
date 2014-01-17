@@ -387,11 +387,10 @@ int Do_FinalPhysicsAnalysis () {
     //Determine the Flux for Dropped Events, for F Observable
     gROOT->mkdir("PostRunPhysics");
     gROOT->cd("PostRunPhysics");
-    hTaggerScalerAccumPhotonsFobsLTCorrected = (TH1D*)hTaggerScalerAccumPhotonsLTCorrected->Clone("PhotonFluxFobsLTCorrected");
+
     double fCorrectionRatio = 1;
     fCorrectionRatio = 1. - hDroppedEvents->GetBinContent(1) / hDroppedEvents->GetBinContent(2);
     printf("INFO: Correction Ratio for dropped events: %f\n",fCorrectionRatio);
-    hTaggerScalerAccumPhotonsFobsLTCorrected->Scale(fCorrectionRatio);
 
 
     printf("INFO: Do_FinalPhysicsAnalysis End\n");

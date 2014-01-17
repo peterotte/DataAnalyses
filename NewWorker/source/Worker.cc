@@ -1,19 +1,15 @@
 /*
  * Fahrplan:
  *   1. T und F Analyse komplett durchziehen
- *   2. Wie müssen die Mittleren Werte von BeamPol, TargetPol und TaggEff richtig bestimmt werden?
- *   2. Defekte Bereich rausnehmen können
+ *   2. Wie mÃ¼ssen die Mittleren Werte von BeamPol, TargetPol und TaggEff richtig bestimmt werden?
  *   3. TaggEff messen
  *   - CB Timing von Sep 2010 verbessern
- *   - Analyse auf cos \theta umstellen
- *
- *   - vielleicht doch nicht die komplette Datei am Anfang einlesen, sondern abschnittsweise
  *   - vielleicht den PID ganz herausnehmen?
  *
  *   4. Tests des Einflusses des PIDs (untere Schwelle)
  *   5. Kalibrationen vom PID (untere Energie schwelle!) verbessern
  *   6. Vielleicht doch den PID TDC mit reinnehmen?
- *   7. Wegen der Normierung auf die Zähler, vielleicht doch nur ein pi0 pro Event rekonstruieren?
+ *   7. Wegen der Normierung auf die ZÃ¤hler, vielleicht doch nur ein pi0 pro Event rekonstruieren?
  *   8. Zeit zwischen Tagger und Meson betrachten, nicht mehr nur die Taggerzeit
  *   9. Das Helicity Pattern genauer untersuchen und Ereignisse mit besonderen Bits aussortieren.
  *
@@ -83,7 +79,6 @@ int SaveSpectraAfterToDisc() {
     hTaggerScalerAccumLTCorrected->Write();
     hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff->Write();
     hTaggerScalerAccumPhotonsLTCorrected->Write();
-    hTaggerScalerAccumPhotonsFobsLTCorrected->Write();
     hBeamPol->Write();
     hTargetPolF->Write();
     hTargetPolT->Write();

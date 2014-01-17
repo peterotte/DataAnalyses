@@ -57,7 +57,7 @@ std::vector<TDataAll> DataAll;
 int NDataAll = 0; //NumberOfEntries in DataAll
 const Int_t NumberOfThetaBins = 181;
 
-std::vector<TH2D*> FitResults(4);
+std::vector<TH2D*> FitResults(5);
 
 
 #include "FitFunctions.cc"
@@ -491,7 +491,12 @@ int PrintDataInformation(int fTaggCh) {
     printf("\n");
 }
 
-int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
+//*************************************************************************************
+int NumberOfSkippedChannels_Sven = 0;
+int NumberOfSkippedChannels_Peter = 0;
+int NumberOfSkippedChannels_Pauline = 0;
+
+int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultiplyDSG) {
     if (fDrawGraphs) TCanvas* Canvas = new TCanvas("Draw");
 
     gROOT->SetStyle("Plain");
@@ -520,19 +525,23 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
             HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF );
             HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError );
             //PlotAsymmetry * DSG
-            HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF *
-                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-            HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError *
-                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            if (fMultiplyDSG) {
+                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF *
+                                           DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError *
+                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            }
         } else {
             //Plot Asymmetry
             HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT );
             HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError );
             //PlotAsymmetry * DSG
-            HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT *
-                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-            HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError *
-                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            if (fMultiplyDSG) {
+                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT *
+                                           DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError *
+                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            }
         }
     }
     HistPauline->SetLineColor(kGreen);
@@ -548,8 +557,10 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
             HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError /
                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             //Plot Asymmetry * DSG
-            HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF );
-            HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError );
+            if (fMultiplyDSG) {
+                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF );
+                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError );
+            }
         } else {
             //Plot Asymmetry
             HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT /
@@ -557,8 +568,10 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
             HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError /
                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             //Plot Asymmetry * DSG
-            HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT );
-            HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError );
+            if (fMultiplyDSG) {
+                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT );
+                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError );
+            }
         }
     }
     HistSven->SetLineColor(kBlack);
@@ -572,25 +585,33 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
             HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF );
             HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError );
             //Plot Asymmetry * DSG
-            HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF *
-                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-            HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError *
-                                   DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            if (fMultiplyDSG) {
+                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF *
+                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError *
+                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            }
         } else {
             //Plot Asymmetry
             HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT );
             HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError );
             //Plot Asymmetry * DSG
-            HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT *
-                                     DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-            HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError *
-                                   DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            if (fMultiplyDSG) {
+                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT *
+                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError *
+                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            }
         }
     }
     HistPeter->SetLineColor(kRed);
     HistPeter->SetMarkerColor(kRed);
     HistPeter->SetMarkerStyle(20);
     HistPeter->SetMarkerSize(0.9);
+
+
+    //********************************************************************************
+
 
     //********************************************************************************
 
@@ -600,76 +621,94 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
     Int_t MyFitStatus = 0;
     char StrFitParameters[10];
     if (fDrawGraphs) {
-        strcpy(StrFitParameters, "RFU+"); //0 = do not draw, q=quiet, R = respect range, f = special min finder,
+        strcpy(StrFitParameters, "RqFU+"); //0 = do not draw, q=quiet, R = respect range, f = special min finder,
                                     // U = adds results to box, + = add multiple fits to the same histo
     } else {
-        strcpy(StrFitParameters, "0RFU+");
+        strcpy(StrFitParameters, "0RqFU+");
     }
 
-    sprintf(tempStr,"DataFit_Sven_%i",fTaggCh);
-    delete gROOT->FindObject(tempStr);
-    TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-    PrevFitTMP->SetLineColor(kBlack);
-    PrevFitTMP->SetLineWidth(2);
-    PrevFitTMP->SetParameter(0, 1);
-    PrevFitTMP->SetParameter(1, 0);
-    PrevFitTMP->SetParameter(2, 0);
-    PrevFitTMP->SetParameter(3, 0);
-//	PrevFitTMP->FixParameter(2, 0);
-    PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-    TFitResultPtr MyFitResult = HistSven->Fit(tempStr, StrFitParameters);
+    if (HistSven->Integral() != 0) {
+        sprintf(tempStr,"DataFit_Sven_%i",fTaggCh);
+        delete gROOT->FindObject(tempStr);
+        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
+        PrevFitTMP->SetLineColor(kBlack);
+        PrevFitTMP->SetLineWidth(2);
+        PrevFitTMP->SetParameter(0, 1);
+        PrevFitTMP->SetParameter(1, 0);
+        PrevFitTMP->SetParameter(2, 0);
+        PrevFitTMP->SetParameter(3, 0);
+    //	PrevFitTMP->FixParameter(2, 0);
+        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
+        TFitResultPtr MyFitResult = HistSven->Fit(tempStr, StrFitParameters);
 
-    MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                         //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-    if (MyFitStatus == 0) {
-        for (int i=0;i<4;i++){
-            FitResults.at(i)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetParameter(i));
-            FitResults.at(i)->SetBinError(fTaggCh+1, 1, PrevFitTMP->GetParError(i));
+        MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
+                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
+        if (MyFitStatus == 0) {
+            for (int i=0;i<4;i++){
+                FitResults.at(i)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetParameter(i));
+                FitResults.at(i)->SetBinError(fTaggCh+1, 1, PrevFitTMP->GetParError(i));
+            }
+            FitResults.at(4)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetChisquare());
+            FitResults.at(4)->SetBinError(fTaggCh+1, 1, 0);
+        } else {
+            printf("ERROR: Fit did not converge.\n");
         }
     } else {
-        printf("ERROR: Fit did not converge.\n");
-    }
-
-    //************************************************************************
-
-    sprintf(tempStr,"DataFit_Peter_%i",fTaggCh);
-    delete gROOT->FindObject(tempStr);
-    PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-    PrevFitTMP->SetLineColor(kRed);
-    PrevFitTMP->SetLineWidth(2);
-    PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-    TFitResultPtr MyFitResult_Peter = HistPeter->Fit(tempStr, StrFitParameters);
-
-    MyFitStatus = MyFitResult_Peter; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                         //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-    if (MyFitStatus == 0) {
-        for (int i=0;i<4;i++){
-            FitResults.at(i)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetParameter(i));
-            FitResults.at(i)->SetBinError(fTaggCh+1, 2, PrevFitTMP->GetParError(i));
-        }
-    } else {
-        printf("ERROR: Fit did not converge.\n");
+        NumberOfSkippedChannels_Sven++;
     }
 
     //************************************************************************
 
-    sprintf(tempStr,"DataFit_Pauline_%i",fTaggCh);
-    delete gROOT->FindObject(tempStr);
-    PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-    PrevFitTMP->SetLineColor(kGreen);
-    PrevFitTMP->SetLineWidth(2);
-    PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-    TFitResultPtr MyFitResult_Pauline = HistPauline->Fit(tempStr, StrFitParameters);
+    if (HistPeter->Integral() != 0) {
+        sprintf(tempStr,"DataFit_Peter_%i",fTaggCh);
+        delete gROOT->FindObject(tempStr);
+        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
+        PrevFitTMP->SetLineColor(kRed);
+        PrevFitTMP->SetLineWidth(2);
+        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
+        TFitResultPtr MyFitResult_Peter = HistPeter->Fit(tempStr, StrFitParameters);
 
-    MyFitStatus = MyFitResult_Pauline; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                         //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-    if (MyFitStatus == 0) {
-        for (int i=0;i<4;i++){
-            FitResults.at(i)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetParameter(i));
-            FitResults.at(i)->SetBinError(fTaggCh+1, 3, PrevFitTMP->GetParError(i));
+        MyFitStatus = MyFitResult_Peter; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
+                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
+        if (MyFitStatus == 0) {
+            for (int i=0;i<4;i++){
+                FitResults.at(i)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetParameter(i));
+                FitResults.at(i)->SetBinError(fTaggCh+1, 2, PrevFitTMP->GetParError(i));
+            }
+            FitResults.at(4)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetChisquare());
+            FitResults.at(4)->SetBinError(fTaggCh+1, 2, 0);
+        } else {
+            printf("ERROR: Fit did not converge.\n");
         }
     } else {
-        printf("ERROR: Fit did not converge.\n");
+        NumberOfSkippedChannels_Peter++;
+    }
+
+    //************************************************************************
+
+    if (HistPauline->Integral() != 0) {
+        sprintf(tempStr,"DataFit_Pauline_%i",fTaggCh);
+        delete gROOT->FindObject(tempStr);
+        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
+        PrevFitTMP->SetLineColor(kGreen);
+        PrevFitTMP->SetLineWidth(2);
+        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
+        TFitResultPtr MyFitResult_Pauline = HistPauline->Fit(tempStr, StrFitParameters);
+
+        MyFitStatus = MyFitResult_Pauline; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
+                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
+        if (MyFitStatus == 0) {
+            for (int i=0;i<4;i++){
+                FitResults.at(i)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetParameter(i));
+                FitResults.at(i)->SetBinError(fTaggCh+1, 3, PrevFitTMP->GetParError(i));
+            }
+            FitResults.at(4)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetChisquare());
+            FitResults.at(4)->SetBinError(fTaggCh+1, 3, 0);
+        } else {
+            printf("ERROR: Fit did not converge.\n");
+        }
+    } else {
+        NumberOfSkippedChannels_Pauline++;
     }
 
     //************************************************************************
@@ -682,6 +721,9 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse) {
 }
 
 int main(int argc, char **argv) {
+    int i;
+    char tempStr[1000];
+
 
     //-------------- Ok nun eingelesen, mache etwas mit den Daten
     //Prevent Root from showing a big info screen.
@@ -693,9 +735,25 @@ int main(int argc, char **argv) {
     //The following line needs to be before each Draw, does not work otherwise in compiled program
     gStyle->SetOptFit(); //To get the Fit Parameters into the FitPanel.
 
+    Int_t fSelectedAsym = 0; //0=T, 1=F
+    for (i=1; i< argc; i++) {
+        if (strncmp("--", argv[i], 1)) {
+            strcpy(tempStr, argv[i]);
+            fSelectedAsym = strtol(tempStr, (char **)NULL, 10);
+            switch (fSelectedAsym) {
+            case 0: Printf("INFO: Selected Asym T\n");
+                break;
+            case 1: Printf("INFO: Selected Asym F\n");
+                break;
+            default: Printf("INFO: Selected Asym T\n");
+                fSelectedAsym = 0;
+                break;
+            }
+        } else {
+//            if (!strcmp("-r", argv[i])) ReplaceRunMetaInfoFile = -1;
+        }
+    }
 
-    int i;
-    char tempStr[1000];
 
     for (i=0;i<257; i++) {
         CreateVector(i);
@@ -705,6 +763,7 @@ int main(int argc, char **argv) {
     FitResults.at(1) = new TH2D("FitResults_P1", "FitResults_P1", 257,0,256, 3,0,2);
     FitResults.at(2) = new TH2D("FitResults_P2", "FitResults_P2", 257,0,256, 3,0,2);
     FitResults.at(3) = new TH2D("FitResults_P3", "FitResults_P3", 257,0,256, 3,0,2);
+    FitResults.at(4) = new TH2D("FitResults_Chi2", "FitResults_Chi2", 257,0,256, 3,0,2);
 
     ReadTheoryData();
 
@@ -721,11 +780,16 @@ int main(int argc, char **argv) {
     }
 */
 
-//    ProcessTaggCh(230,-1, 0);
+//    ProcessTaggCh(100,-1, fSelectedAsym, -1);
 //    PrintDataInformation(230);
+    NumberOfSkippedChannels_Sven=0;
+    NumberOfSkippedChannels_Peter=0;
+    NumberOfSkippedChannels_Pauline=0;
+
     for (i=0; i<257; i++) {
-        ProcessTaggCh(i, 0, 1);
+        ProcessTaggCh(i, 0, fSelectedAsym, -1); //int fTaggCh, int fDrawGraphs, int fAsymToAnalyse (0=T, 1=F)
     }
+    printf("Skipped Histos: %d\t%d\t%d\n", NumberOfSkippedChannels_Sven, NumberOfSkippedChannels_Peter, NumberOfSkippedChannels_Pauline);
     //PrintDataInformation(100);
 
 /*    TCanvas *c1 = new TCanvas("CanvasFitResults");
@@ -736,11 +800,15 @@ int main(int argc, char **argv) {
 */
 
     TCanvas *c2 = new TCanvas("CanvasCompiled");
-    c2->Divide(2,2);
-    for (i=0;i<4;i++) {
+    c2->Divide(3,2);
+    for (i=0;i<5;i++) {
         c2->cd(i+1);
-        for (int k=0;k<2;k++) {
-            sprintf(tempStr, "Parameter_%d_%d", i, k);
+        for (int k=0;k<3;k++) {
+            if (i<4) {
+                sprintf(tempStr, "Parameter_%d_%d", i, k);
+            } else {
+                sprintf(tempStr, "Chi2_%d_%d", i, k);
+            }
             TH1D *h1 = (TH1D*)FitResults.at(i)->ProjectionX(tempStr,k+1,k+1);
             h1->SetLineColor(k+1);
             if (k==0) {
@@ -750,7 +818,6 @@ int main(int argc, char **argv) {
             }
         }
     }
-
 
 
 

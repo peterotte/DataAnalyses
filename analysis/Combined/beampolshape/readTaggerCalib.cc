@@ -23,7 +23,7 @@ int ReadTaggerConfigurationFile() {
 
     FILE *readFile = NULL;
     Char_t TempStr[1024];
-	Char_t	InputPathDataDir[1024] = "/home/peter/NewWorker/data/2010_09";
+	Char_t	InputPathDataDir[1024] = "."; // /home/peter/NewWorker/data/2010_09
     strcpy(TempStr, InputPathDataDir);
     strcat(TempStr, "/Tagger_Ladder.dat");
     readFile=fopen(TempStr, "r");// text Datei zum Schreiben "r" aufmachen.
