@@ -4,6 +4,14 @@
 #include <GeneralConstants.h>
 
 //-----------------------------------------------------------------------------
+//#d efine DO_hMissingMassPrompt 1
+//#d efine DO_CBADC3Sums 1
+// Do ADC_Overview, Scaler_Overview, ErrorBlocks
+//#d efine DO_ExtendedRawDataChecks 1
+
+
+
+//-----------------------------------------------------------------------------
 
 
 int SigIntCalled = 0; //To catch CTRL-C
@@ -44,6 +52,7 @@ typedef struct TEvent {
     int HelicityBit;
     int ReferenceRawTDCTagger; //TDC ch 1400
     int ReferenceRawTDCCB;     //TDC ch 2000
+    int NErrorBlocks;          //Number of Errorblocks
     std::vector<THitElement> HitElements;
     std::vector<TCBCluster> CBClusters; //for Clusters from CB
 } TEvent;
@@ -64,6 +73,7 @@ typedef struct TEventBlock { //Should include one scaler read and several Events
 TEvent TempEvent; //Here the ADC info from a complete event is saved
 int Clear_TempEvent() {
     TempEvent.EventID = -1;
+    TempEvent.NErrorBlocks = 0;
     TempEvent.HelicityBit = -1;
     TempEvent.ReferenceRawTDCTagger = NoValuePresent;
     TempEvent.ReferenceRawTDCCB = NoValuePresent;
@@ -107,6 +117,7 @@ typedef struct TRunsMetaInformation {
     double BeamPolDegree;
     double AbsTaggEff;
     std::string DataPath;
+    double CBEnergyScale;
 } TRunsMetaInformation;
 std::vector<TRunsMetaInformation> RunsMetaInformation;
 int NRunsMetaInformation = 0;
@@ -115,10 +126,15 @@ int NRunsMetaInformation = 0;
 //-----------------------------------------------------------------------------
 // Histograms
 //-----------------------------------------------------------------------------
-TH1D *hADCOverview;
-TH2D *hErrorBlocks;
+#ifdef DO_ExtendedRawDataChecks
+    TH1D *hADCOverview;
+    TH2D *hErrorBlocks;
+
+    //Scaler
+    TH1D *hAllScalerAccum;
+#endif
 //Scaler
-TH1D *hAllScalerAccum, *hTaggerScalerAccum, *hTriggerScalerAccum;
+TH1D *hTaggerScalerAccum, *hTriggerScalerAccum;
 TH1D *hTaggerScalerAccumLTCorrected;
 TH1D *hLiveTimeAccum;
 TH1D *hTaggerScalerAccumPhotonsLTCorrected, *hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff;
@@ -135,9 +151,9 @@ TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits; //Number of Multihits 
 TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
 
-TH2D *hMWPCChADCPart1, *hMWPCChADCPart2, *hMWPCChADCPart3; //Raw MWPC ADC values, pedestal, signal, tail. For debug of ADC delay setting
-
-TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
+#ifdef DO_CBADC3Sums
+    TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
+#endif
 TH2D *hCBChADC, *hPIDChADC; //Raw ADC information is put here
 TH2D *hPIDChADCCutTDCRequired; //RawADC information, but only, if TDC hit was present
 TH2D *hCBChEnergy, *hPIDChEnergy; //Calibrated ADC information is put here
@@ -153,6 +169,7 @@ TH2D *CBClusterEnergy_VS_CBNElemCluster; //Number of participation elements in a
 //Physics histograms
 TH1D *hMesonInvariantMass, *hTwoParticlesInvariantMass;
 TH1D *hMesonInvariantMassCorrected;
+TH1D *hTimeMesonTagger;
 TH1D *hNPhotons;
 TH1D *hCBEnergySum;
 TH2D *hCBEnergySum_VS_EventID;
@@ -160,11 +177,16 @@ TH1D *hCB2GammaDeltaTime;
 TH2D *hMesonPhi_VS_EventID, *hMesonThetaLab_VS_EventID;
 
 //Histograms for Physics Analysis
-/*std::vector<TH2D*> hMissingMassPrompt;
-std::vector<TH2D*> hMissingMassBg;
-std::vector<TH2D*> hMissingMassSignal;
-*/
-TH2D *hMissingMassCombinedPrompt, *hMissingMassCombinedBg, *hMissingMassCombinedSignal;
+#ifdef DO_hMissingMassPrompt
+    std::vector<TH2D*> hMissingMassPrompt;
+    std::vector<TH2D*> hMissingMassBg;
+    std::vector<TH2D*> hMissingMassSignal;
+#endif
+TH2D *hMissingMassCombinedPrompt, *hMissingMassCombinedBg, *hMissingMassCombinedSignal; //TaggCh VS Meson-Theta
+TH2D *hMissingMassVsMesonThetaPrompt, *hMissingMassVsMesonThetaBg, *hMissingMassVsMesonThetaSignal; //MissingMass (= Proton) VS Meson-Theta
+TH2D *hInvariant2GammaMassVsThetaPrompt, *hInvariant2GammaMassVsThetaPromptKinFit; //Meson Mass vs Theta
+
+TH1D *hKinFitPulls;
 
 TH2D *hMissingMassCombinedSignalLTCorrected;
 
@@ -181,7 +203,7 @@ TH2D *hMissingMassCombinedSignalLTCorrectedTP, *hMissingMassCombinedSignalLTCorr
 
 TH1D *hCountNumberOfHistos;
 
-TH1D *hBeamPol, *hTaggEffAbs, *hTaggEffAbsAllMesons;
+TH2D *hBeamPol, *hTaggEffAbsT, *hTaggEffAbsF, *hTaggEffAbsAll;
 TH2D *hTargetPolF, *hTargetPolT;
 
 //-----------------------------------------------------------------------------
@@ -195,17 +217,21 @@ TH2D *hTargetPolF, *hTargetPolT;
 int InitCalibHistograms() {
     gROOT->mkdir("RawDataDetails");
     gROOT->cd("RawDataDetails");
-    //Overview: All Scalers and ADCs
-    hADCOverview = new TH1D("hADCOverview","hADCOverview",66000,0,66000);
-    hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
-    //Error checks
-    hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 1000, 0, 10000);
+    #ifdef DO_ExtendedRawDataChecks
+        //Overview: All Scalers and ADCs
+        hADCOverview = new TH1D("hADCOverview","hADCOverview",66000,0,66000);
+        hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
+        //Error checks
+    //    hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 100000, 0, 100000);
+        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 200, 0, 200000, 20000, 30000, 50000);
+    #endif
     hDroppedEvents = new TH1D("hDroppedEvents", "hDroppedEvents", 2, 0, 2);
 
     gDirectory->mkdir("EventID");
     gDirectory->cd("EventID");
     //ErrorChecking for CBADCs
     hCBADCHits_VS_EventID = new TH2D("CBADCHits_VS_EventID", "CBADCHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
+//    hCBADCHits_VS_EventID = new TH2D("CBADCHits_VS_EventID", "CBADCHits_VS_EventID", 1000, 0, 1000, NCBElements, 0, NCBElements);
     hCBTDCHits_VS_EventID = new TH2D("CBTDCHits_VS_EventID", "CBTDCHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
     hCBHits_VS_EventID = new TH2D("CBHits_VS_EventID", "CBHits_VS_EventID", (3000000./1000.), 0, 3000000, NCBElements, 0, NCBElements);
     hCBDeletedHits_VS_EventID_DueEnergy = new TH2D("hCBDeletedHits_VS_EventID_DueEnergy", "hCBDeletedHits_VS_EventID_DueEnergy", 2000, 0, 2000000, NCBElements, 0, NCBElements);
@@ -218,9 +244,11 @@ int InitCalibHistograms() {
     gDirectory->mkdir("ADC");
     gDirectory->cd("ADC");
     //Uncalibrated CB ADC, their single sums
-    hCBChADCPart1 = new TH2D("hCBChADCPart1", "hCBChADCPart1", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 1st sum, pedestal
-    hCBChADCPart2 = new TH2D("hCBChADCPart2", "hCBChADCPart2", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 2nd sum, signal
-    hCBChADCPart3 = new TH2D("hCBChADCPart3", "hCBChADCPart3", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 3rd sum, tail
+    #ifdef DO_CBADC3Sums
+        hCBChADCPart1 = new TH2D("hCBChADCPart1", "hCBChADCPart1", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 1st sum, pedestal
+        hCBChADCPart2 = new TH2D("hCBChADCPart2", "hCBChADCPart2", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 2nd sum, signal
+        hCBChADCPart3 = new TH2D("hCBChADCPart3", "hCBChADCPart3", 1000, -100, 66000, NCBElements, 0, NCBElements);//Raw ADC information, 3rd sum, tail
+    #endif
 
     gROOT->mkdir("Calibration");
     gROOT->cd("Calibration");
@@ -237,7 +265,7 @@ int InitCalibHistograms() {
     hTaggerTime = new TH2D("hTaggerTime", "hTaggerTime", 2000, -1000, 1000, NTaggerElements, 0, NTaggerElements);//Calibrated Time
     hTaggerNMultiHits = new TH2D("hTaggerNMultiHits", "hTaggerNMultiHits", 10,0,10, NTaggerElements, 0, NTaggerElements); //Number of Multihits per Event | Without cuts, raw signal
     hTaggerNMultiHitsCuts = new TH2D("hTaggerNMultiHitsCuts", "hTaggerNMultiHitsCuts", 10,0,10, NTaggerElements, 0, NTaggerElements); //Number of Multihits per Event | After calibration and time cuts
-    hTaggerNHits = new TH1D("TaggerNHits", "TaggerNHits", 50, 0, 50);//NHits spectra
+    hTaggerNHits = new TH1D("TaggerNHits", "TaggerNHits", 100, 0, 100);//NHits spectra
 
     gROOT->cd("Calibration");
     gDirectory->mkdir("CB");
@@ -283,10 +311,11 @@ int InitCalibHistograms() {
     hMesonInvariantMass = new TH1D("MesonInvariantMass", "MesonInvariantMass", 250, 0, 250); hMesonInvariantMass->Sumw2();
     hMesonInvariantMassCorrected = new TH1D("MesonInvariantMassCorrected", "MesonInvariantMassCorrected", 250, 0, 250); hMesonInvariantMassCorrected->Sumw2();
     hTwoParticlesInvariantMass = new TH1D("TwoParticlesInvariantMass", "TwoParticlesInvariantMass", 250,0,250); hTwoParticlesInvariantMass->Sumw2();
+    hTimeMesonTagger = new TH1D("hTimeMesonTagger", "hTimeMesonTagger", 400, -200, 200);
     hNPhotons = new TH1D("NPhotons", "NPhotons", 20, 0, 20);
     hCBEnergySum = new TH1D("CBEnergySum", "CBEnergySum", 250, 0, 500); hCBEnergySum->Sumw2();
     hCBEnergySum_VS_EventID = new TH2D("hCBEnergySum_VS_EventID", "hCBEnergySum_VS_EventID", 2000, 0, 2000000, 250, 0, 500);
-    hCB2GammaDeltaTime = new TH1D("hCB2GammaDeltaTime", "hCB2GammaDeltaTime", 100, -50, 50);
+    hCB2GammaDeltaTime = new TH1D("hCB2GammaDeltaTime", "hCB2GammaDeltaTime", 200, -100, 100);
 
     hMesonPhi_VS_EventID = new TH2D("MesonPhi_VS_EventID", "MesonPhi_VS_EventID", (2000000./1000.), 0, 2000000, 45, -180, 180);
     hMesonThetaLab_VS_EventID = new TH2D("MesonThetaLab_VS_EventID", "MesonThetaLab_VS_EventID", (2000000./1000.), 0, 2000000, 45, 0, 180);
@@ -313,31 +342,43 @@ int InitCalibHistograms() {
     hMissingMassCombinedBgTM =       new TH2D("MissingMassCombinedBgTM",      "MissingMassCombinedBgTM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgTM->Sumw2();
     hMissingMassCombinedSignalTM =   new TH2D("MissingMassCombinedSignalTM",  "MissingMassCombinedSignalTM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalTM->Sumw2();
 
+    hMissingMassVsMesonThetaPrompt = new TH2D("hMissingMassVsMesonThetaPrompt", "hMissingMassVsMesonThetaPrompt",   120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaPrompt->Sumw2();
+    hMissingMassVsMesonThetaBg =     new TH2D("hMissingMassVsMesonThetaBg",     "hMissingMassVsMesonThetaBg",       120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaBg->Sumw2();
+    hMissingMassVsMesonThetaSignal = new TH2D("hMissingMassVsMesonThetaSignal", "hMissingMassVsMesonThetaSignal",   120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaSignal->Sumw2();
+
+    hInvariant2GammaMassVsThetaPrompt = new TH2D("hInvariant2GammaMassVsThetaPrompt", "hInvariant2GammaMassVsThetaPrompt",   200, 0, 200, 36, 0, 180); hInvariant2GammaMassVsThetaPrompt->Sumw2();
+    hInvariant2GammaMassVsThetaPromptKinFit = new TH2D("hInvariant2GammaMassVsThetaPromptKinFit", "hInvariant2GammaMassVsThetaPromptKinFit",       200, 0, 200, 36, 0, 180); hInvariant2GammaMassVsThetaPromptKinFit->Sumw2();
+
+    hKinFitPulls = new TH1D("hKinFitPulls", "hKinFitPulls", 200, -50, 50);
+
+    #ifdef DO_hMissingMassPrompt
+        hMissingMassPrompt.resize(NTaggerElements);
+        hMissingMassBg.resize(NTaggerElements);
+        hMissingMassSignal.resize(NTaggerElements);
+        for (int i=0;i<NTaggerElements;i++) {
+            Char_t TempStr[256];
+            sprintf(TempStr, "hMissingMassPrompt_%d", i);
+            hMissingMassPrompt.at(i) = new TH2D(TempStr, TempStr, 120,880,1000,  18, 0, 180);
+            hMissingMassPrompt.at(i)->Sumw2();
+            sprintf(TempStr, "hMissingMassBg_%d", i);
+            hMissingMassBg.at(i) = new TH2D(TempStr, TempStr, 120,880,1000,  18, 0, 180);
+            hMissingMassBg.at(i)->Sumw2();
+            sprintf(TempStr, "hMissingMassSignal_%d", i);
+            hMissingMassSignal.at(i) = new TH2D(TempStr, TempStr, 120,880,1000, 18, 0, 180);
+            hMissingMassSignal.at(i)->Sumw2();
+        }
+    #endif
+
     gROOT->cd();
     gROOT->mkdir("BeamTarget");
     gROOT->cd("BeamTarget");
-    hBeamPol = new TH1D("BeamPol", "BeamPol", 1000, 0, 1); hBeamPol->Sumw2();
+    hBeamPol    = new TH2D("BeamPol", "BeamPol", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hBeamPol->Sumw2();
     hTargetPolF = new TH2D("TargetPolF", "TargetPolF", NTaggerElements, 0, NTaggerElements, 200, 0, 1); hTargetPolF->Sumw2();
     hTargetPolT = new TH2D("TargetPolT", "TargetPolT", NTaggerElements, 0, NTaggerElements, 200, 0, 1); hTargetPolT->Sumw2();
-    hTaggEffAbs = new TH1D("TaggEffAbs", "TaggEffAbs", 1000, 0, 1); hTaggEffAbs->Sumw2();
-    hTaggEffAbsAllMesons = new TH1D("TaggEffAbsAllMesons", "TaggEffAbsAllMesons", 1000, 0, 1); hTaggEffAbsAllMesons->Sumw2();
+    hTaggEffAbsT = new TH2D("TaggEffAbsT", "TaggEffAbsT", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsT->Sumw2();
+    hTaggEffAbsF = new TH2D("TaggEffAbsF", "TaggEffAbsF", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsF->Sumw2();
+    hTaggEffAbsAll = new TH2D("TaggEffAbsAll", "TaggEffAbsAll", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsAll->Sumw2(); //with cut on EffHel
 
-    /*hMissingMassPrompt.resize(NTaggerElements);
-    hMissingMassBg.resize(NTaggerElements);
-    hMissingMassSignal.resize(NTaggerElements);
-    for (int i=0;i<NTaggerElements;i++) {
-        Char_t TempStr[256];
-        sprintf(TempStr, "hMissingMassPrompt_%d", i);
-        hMissingMassPrompt.at(i) = new TH2D(TempStr, TempStr, 100,800,1000,  18, 0, 180);
-        hMissingMassPrompt.at(i)->Sumw2();
-        sprintf(TempStr, "hMissingMassBg_%d", i);
-        hMissingMassBg.at(i) = new TH2D(TempStr, TempStr, 100,800,1000,  18, 0, 180);
-        hMissingMassBg.at(i)->Sumw2();
-        sprintf(TempStr, "hMissingMassSignal_%d", i);
-        hMissingMassSignal.at(i) = new TH2D(TempStr, TempStr, 100,800,1000, 18, 0, 180);
-        hMissingMassSignal.at(i)->Sumw2();
-    }
-    */
 
     //Histogram counter for later hadd
     gROOT->cd();

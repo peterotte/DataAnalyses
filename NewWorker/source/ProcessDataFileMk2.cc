@@ -1,5 +1,4 @@
 #include <ConvertionRaw2Units.cc>
-#include <ExportTreeFile.cc>
 #include <CBClusterFinder.cc>
 #include <FillNHitsHistograms.cc>
 #include <CBPID_MarkChargedClusters.cc>
@@ -122,11 +121,14 @@ int ProcessDataFileMk2() {
                                  while (si < AktScalerBlockLaenge) {
                                      if ( (ptrN[i+bi+ei+si].AsInt) == 0xefefefef) {
                                          EventBlock.ScalerErrors++;
+                                         TempEvent.NErrorBlocks++;
                                          AnzahlScalerFehlerBlocks++;
                                          Printf("Error: Error block in scaler read.");
                                          si = si +5;
                                      } else {
-                                         hAllScalerAccum->Fill(ptrN[i+bi+ei+si].AsInt, ptrN[i+bi+ei+si+1].AsInt); //This fills the debug information histo, which scaler is how often used
+                                         #ifdef DO_ExtendedRawDataChecks
+                                            hAllScalerAccum->Fill(ptrN[i+bi+ei+si].AsInt, ptrN[i+bi+ei+si+1].AsInt); //This fills the debug information histo, which scaler is how often used
+                                         #endif
                                          int EventBlockAnzahlScaler = ptrN[i+bi+ei+si].AsInt;
                                          if (RawADCData.ExperimentLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.ExperimentLiveCounter = ptrN[i+bi+ei+si+1].AsInt;
                                          if (RawADCData.UngatedLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.UngatedLiveCounter = ptrN[i+bi+ei+si+1].AsInt;
@@ -158,8 +160,11 @@ int ProcessDataFileMk2() {
                          else if (ptrN[i+bi+ei].AsInt == 0xefefefef) { //Error block start
                              AnzahlFehlerBlocks++;
                              EventBlock.NumberErrorBlocks++;
+                             TempEvent.NErrorBlocks++;
                              ZustandFehlerImAktEvent = -1;
-                             hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsInt*100+ptrN[i+bi+ei+3].AsInt) );
+                             #ifdef DO_ExtendedRawDataChecks
+                                hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsInt*10+ptrN[i+bi+ei+3].AsInt) );
+                             #endif
 
                            //  Printf("Error block (buffer#: %5u  BufferEvent#: %3u  Event#: %6u): %3x %3x %3x",AnzahlBuffer,EventAnzahlImBuffer,AnzahlEvents, ptr[i+bi+ei+1],ptr[i+bi+ei+2],ptr[i+bi+ei+3]);
 
@@ -176,8 +181,9 @@ int ProcessDataFileMk2() {
                                  case 1400: TempEvent.ReferenceRawTDCTagger = ptrN[(i+bi+ei)].AsADC.Value; break;
                                  case 2000: TempEvent.ReferenceRawTDCCB = ptrN[(i+bi+ei)].AsADC.Value; break;
                              }
-
-                             //hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
+                             #ifdef DO_ExtendedRawDataChecks
+                                hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
+                             #endif
 
                              int AktADCDetectorID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).DetectorID;
                              int AktADCElementID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).ElementID;
@@ -186,12 +192,13 @@ int ProcessDataFileMk2() {
                              int AktADCMultiValue = ptrN[(i+bi+ei+1)].AsADC.Value - ptrN[(i+bi+ei)].AsADC.Value; //Signal - Pedestal
 
                              //CB ADC: Debug single ADC Sums
-//                             if ( (AktADCDetectorID == 1) /*CB*/ && (AktADCTypeID == 0) /*ADC information*/ ) {
-//                                 hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
-//                                 hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
-//                                 hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
-//                             }
-
+                            #ifdef DO_CBADC3Sums
+                                 if ( (AktADCDetectorID == 1) /*CB*/ && (AktADCTypeID == 0) /*ADC information*/ ) {
+                                     hCBChADCPart1->Fill(ptrN[(i+bi+ei)].AsADC.Value, AktADCElementID);
+                                     hCBChADCPart2->Fill(ptrN[(i+bi+ei+1)].AsADC.Value, AktADCElementID);
+                                     hCBChADCPart3->Fill(ptrN[(i+bi+ei+2)].AsADC.Value, AktADCElementID);
+                                 }
+                            #endif
 
                              if (AktADCDetectorID != -1) { //Only, if the ADC value is defined by configuration files.
                                  //Now check, whether the element is already represented with some data (ADC/TDC) in this Event(TempEvent)

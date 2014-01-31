@@ -15,6 +15,18 @@ NewWorker
 AR
 - Ruft den NewWorker/build/bin/NewWorker auf. 2 Parameter: Start und End FileID
 
+CBEnergyFitter
+- Berechnet die Position und Breite der Mesonen-Masse für eine Beamtime, zuerst muss NewWorker diese Dateien erzeugt haben.
+- Parameter: 
+            SelectedBeamtime (0, 1, 2)
+            -b    ProgramBatchMode
+            -d    ProgramDebugMode
+            -new  Wenn die Spalte CBEnergyScale in RunsMetaInformation.dat neu mit dem Wert 1.0 gefüllt werden soll
+            -r    ReplaceRunMetaInfoFile
+- Programm 1x ausführen:
+  CBEnergyFitter/build/bin/CBEnergyFitter -r -b
+
+
 
 
 NewTaggEff

@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project(NewWorker)
+project(CBEnergyFitter)
 
 # check for in-source build, forbid it!
 if(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR AND NOT MSVC_IDE)
@@ -39,8 +39,7 @@ endif()
 include_directories("source" ${ROOT_INCLUDE_DIR})
 
 # construct the exe from source files
-add_executable("NewWorker" "source/TA2KFParticle.cc" "source/TA2KFParticle.h" "source/TA2CBKinematicFitter.cc" "source/TA2CBKinematicFitter.h" "source/Worker.cc" "source/Worker.h" "source/DictOutput.h" "source/DictOutput.cc")
-#add_executable("NewWorker" "source/Worker.cc" "source/Worker.h")
-target_link_libraries("NewWorker" ${ROOT_LIBRARIES} "-lMinuit")
+add_executable("CBEnergyFitter" "source/Worker.cc" "source/Worker.h")
+target_link_libraries("CBEnergyFitter" ${ROOT_LIBRARIES} "-lMinuit")
 #message("${ROOT_LIBRARIES}")
 

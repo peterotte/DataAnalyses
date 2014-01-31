@@ -50,7 +50,7 @@ int Do_ConstructDetectorHits() {
                 //Handle ADC information
                 hCBChADC->Fill( EventBlock.Events.at(i).HitElements.at(k).RawADC, AktElementNr );
                 double TempEnergy = (EventBlock.Events.at(i).HitElements.at(k).RawADC - RawADCData.CB.Elements.at(AktElementNr).ADCPedestalTicks) * RawADCData.CB.Elements.at(AktElementNr).ADCMEVPerTick;
-                TempEnergy = TempEnergy * CBEnergyScale;
+                TempEnergy = TempEnergy * GlobalCBEnergyScale * RunsMetaInformation.at(IndexRunMetaInfomation).CBEnergyScale;
 
                 //Do Energy Cuts
                 int TempEFill = -1;

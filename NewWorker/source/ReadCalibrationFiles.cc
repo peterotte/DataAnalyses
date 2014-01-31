@@ -403,8 +403,8 @@ int ReadCBConfigurationFile() {
                 Printf("Info: CB TimeOffsetNS: %f", RawADCData.CB.TimeOffsetNS);
             }
             if (!strcmp(Buffer, "Energy-Scale:")) {
-                CBEnergyScale = SingleFloatToRead;
-                Printf("Info: CB Energy-Scale: %f", CBEnergyScale );
+                GlobalCBEnergyScale = SingleFloatToRead;
+                Printf("Info: CB Energy-Scale: %f", GlobalCBEnergyScale );
             }
             if (!strcmp(Buffer, "ClusterMinEnergy:")) {
                 ClusterMinEnergy = SingleFloatToRead;
@@ -676,6 +676,7 @@ int ReadRunsInformationConfigurationFile() {
     float ErrorTargetPolDegree = 0;
     float BeamPolDegree = 0;
     float AbsTaggEff = -1.;
+    float CBEnergyScale = 1.0;
 
 
     sprintf(FilePathRunInformation, "%s/RunsMetaInformation.dat", InputPathDataDir); //Path and Filename to File with RunInfo: for all files to analyse
@@ -698,8 +699,8 @@ int ReadRunsInformationConfigurationFile() {
         buffer[0] = '\0';
 
         //
-        if (sscanf(Line, "%s %d %s %d %d %f %d %d %d %d %f %f %f %f %f %s", buffer, &RunNumber, &FileName, &RunType, &BeamTimeBlock,
-                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, &BufferDataPath ) == 16) {
+        if (sscanf(Line, "%s %d %s %d %d %f %d %d %d %d %f %f %f %f %f %s %f", buffer, &RunNumber, &FileName, &RunType, &BeamTimeBlock,
+                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, &BufferDataPath, &CBEnergyScale ) == 17) {
             if (!strcmp(buffer, "RunInfo:")) {
                 TRunsMetaInformation TempRunInfo;
                 TempRunInfo.RunNumber = RunNumber;
@@ -719,15 +720,16 @@ int ReadRunsInformationConfigurationFile() {
                 TempRunInfo.BeamPolDegree = BeamPolDegree;
                 TempRunInfo.AbsTaggEff = AbsTaggEff;
                 TempRunInfo.DataPath = BufferDataPath;
+                TempRunInfo.CBEnergyScale = CBEnergyScale;
 
                 RunsMetaInformation.push_back(TempRunInfo);
-                // Printf("Run %i info added (16 info): %d %d %f %f %s", AktElementNr, RunNumber, RunType, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
+                // Printf("Run %i info added (17 info): %d %d %f %f %s", AktElementNr, RunNumber, RunType, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
                 AktElementNr++;
             }
         }
 
-        if (sscanf(Line, "%s %d %s %d %d %d %f %d %d %d %d %f %f %f %f %f %s", buffer, &RunNumber, &FileName, &TaggEffCorrespondingRun, &TaggEffPartNo, &BeamTimeBlock,
-                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, &BufferDataPath ) == 17) {
+        if (sscanf(Line, "%s %d %s %d %d %d %f %d %d %d %d %f %f %f %f %f %s %f", buffer, &RunNumber, &FileName, &TaggEffCorrespondingRun, &TaggEffPartNo, &BeamTimeBlock,
+                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, &BufferDataPath, &CBEnergyScale ) == 18) {
             if (!strcmp(buffer, "TaggRunInfo:")) {
                 TRunsMetaInformation TempRunInfo;
                 TempRunInfo.RunNumber = RunNumber;
@@ -747,9 +749,10 @@ int ReadRunsInformationConfigurationFile() {
                 TempRunInfo.BeamPolDegree = BeamPolDegree;
                 TempRunInfo.AbsTaggEff = AbsTaggEff;
                 TempRunInfo.DataPath = BufferDataPath;
+                TempRunInfo.CBEnergyScale = CBEnergyScale;
                 RunsMetaInformation.push_back(TempRunInfo);
 
-                //Printf("TaggEffRun %i info added (17 info): %d %d %d %f %f %s", AktElementNr, RunNumber, TaggEffCorrespondingRun, TaggEffPartNo, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
+                //Printf("TaggEffRun %i info added (18 info): %d %d %d %f %f %s", AktElementNr, RunNumber, TaggEffCorrespondingRun, TaggEffPartNo, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
                 AktElementNr++;
             }
         }

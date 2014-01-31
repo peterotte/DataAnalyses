@@ -621,7 +621,7 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
     Int_t MyFitStatus = 0;
     char StrFitParameters[10];
     if (fDrawGraphs) {
-        strcpy(StrFitParameters, "RqFU+"); //0 = do not draw, q=quiet, R = respect range, f = special min finder,
+        strcpy(StrFitParameters, "RqUF+"); //0 = do not draw, q=quiet, R = respect range, f = special min finder,
                                     // U = adds results to box, + = add multiple fits to the same histo
     } else {
         strcpy(StrFitParameters, "0RqFU+");
@@ -648,7 +648,7 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
                 FitResults.at(i)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetParameter(i));
                 FitResults.at(i)->SetBinError(fTaggCh+1, 1, PrevFitTMP->GetParError(i));
             }
-            FitResults.at(4)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetChisquare());
+            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
             FitResults.at(4)->SetBinError(fTaggCh+1, 1, 0);
         } else {
             printf("ERROR: Fit did not converge.\n");
@@ -675,7 +675,7 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
                 FitResults.at(i)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetParameter(i));
                 FitResults.at(i)->SetBinError(fTaggCh+1, 2, PrevFitTMP->GetParError(i));
             }
-            FitResults.at(4)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetChisquare());
+            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
             FitResults.at(4)->SetBinError(fTaggCh+1, 2, 0);
         } else {
             printf("ERROR: Fit did not converge.\n");
@@ -702,7 +702,8 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
                 FitResults.at(i)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetParameter(i));
                 FitResults.at(i)->SetBinError(fTaggCh+1, 3, PrevFitTMP->GetParError(i));
             }
-            FitResults.at(4)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetChisquare());
+            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
+            //printf("%d\t%f\t%d\t%f\n", fTaggCh, PrevFitTMP->GetChisquare(), PrevFitTMP->GetNDF(), PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
             FitResults.at(4)->SetBinError(fTaggCh+1, 3, 0);
         } else {
             printf("ERROR: Fit did not converge.\n");
@@ -799,7 +800,10 @@ int main(int argc, char **argv) {
     }
 */
 
-    TCanvas *c2 = new TCanvas("CanvasCompiled");
+    sprintf(tempStr, "DataCompiled_F");
+    if (fSelectedAsym==0) sprintf(tempStr, "DataCompiled_T");
+
+    TCanvas *c2 = new TCanvas(tempStr);
     c2->Divide(3,2);
     for (i=0;i<5;i++) {
         c2->cd(i+1);
@@ -807,12 +811,29 @@ int main(int argc, char **argv) {
             if (i<4) {
                 sprintf(tempStr, "Parameter_%d_%d", i, k);
             } else {
-                sprintf(tempStr, "Chi2_%d_%d", i, k);
+                sprintf(tempStr, "Chi2/DoF_%d", k);
             }
             TH1D *h1 = (TH1D*)FitResults.at(i)->ProjectionX(tempStr,k+1,k+1);
             h1->SetLineColor(k+1);
             if (k==0) {
                 h1->Draw("");
+                if (fSelectedAsym==0) { //T
+                    switch (i) {
+                    case 0: h1->SetAxisRange(-4,7,"Y"); break;
+                    case 1: h1->SetAxisRange(-15,3,"Y"); break;
+                    case 2: h1->SetAxisRange(-5,10,"Y"); break;
+                    case 3: h1->SetAxisRange(-7,7,"Y"); break;
+                    case 4: h1->SetAxisRange(0,8,"Y"); break;
+                    }
+                } else {
+                    switch (i) {
+                    case 0: h1->SetAxisRange(-8,3,"Y"); break;
+                    case 1: h1->SetAxisRange(-50,10,"Y"); break;
+                    case 2: h1->SetAxisRange(-10,12,"Y"); break;
+                    case 3: h1->SetAxisRange(-10,10,"Y"); break;
+                    case 4: h1->SetAxisRange(0,8,"Y"); break;
+                    }
+                }
             } else {
                 h1->Draw("same");
             }

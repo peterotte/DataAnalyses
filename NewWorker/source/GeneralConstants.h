@@ -51,7 +51,7 @@ double PIDCBPhiDelta = 0.; //Correlation between CB Cluster and PID Element in P
 
 //----------------------------------------------------------------------------
 // CB Constants
-double CBEnergyScale = 1.;
+double GlobalCBEnergyScale = 1.;
 //CB Cluster Algo Constants
 double ClusterMinEnergy = 0.; //in MeV
 

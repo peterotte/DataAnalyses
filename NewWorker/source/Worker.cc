@@ -34,6 +34,10 @@
 #include <TThread.h>
 #include <TFile.h>
 
+#include "TA2KFParticle.h"
+#include "TA2CBKinematicFitter.h"
+
+
 #include <Worker.h>
 #include <ReadCalibrationFiles.cc>
 #include <ReadRawDataFile.cc>
@@ -65,6 +69,7 @@ int SaveSpectraAfterToDisc() {
     /*hCBHits_VS_EventID->Write();
     hMesonPhi_VS_EventID->Write();
     hMesonThetaLab_VS_EventID->Write();*/
+    hMesonInvariantMass->Write();
     hMissingMassCombinedSignal->Write();
     hCountNumberOfHistos->Write();
     hDroppedEvents->Write();
@@ -82,8 +87,9 @@ int SaveSpectraAfterToDisc() {
     hBeamPol->Write();
     hTargetPolF->Write();
     hTargetPolT->Write();
-    hTaggEffAbs->Write();
-    hTaggEffAbsAllMesons->Write();
+    hTaggEffAbsT->Write();
+    hTaggEffAbsF->Write();
+    hTaggEffAbsAll->Write();
     f->Close();
     printf("INFO: Completed writing histograms to ROOT file.\n");
 
@@ -150,9 +156,8 @@ void *ThreadHandle(void *ptr) {
     printf("INFO: MyThread Start.\n");
 
     ProcessFile();
-    CloseExportTreeFile();
 
-    printf("INO: MyThread End.\n");
+    printf("INFO: MyThread End.\n");
     return 0;
 }
 
@@ -222,14 +227,12 @@ int main(int argc, char **argv)
     gStyle->SetPalette(1);
 
     InitCalibHistograms();
-    InitialiseExportTreeFile();
 
     Printf("--------------------------------------");
 
 
     if (ProgramBatchMode) {
         ProcessFile();
-        CloseExportTreeFile();
     } else {
         MyThread = new TThread("MyThread", ThreadHandle, (void*) 0);
         MyThread->Run();

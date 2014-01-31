@@ -3,8 +3,8 @@
 #include <cstddef>
 
 const char Str_RootFilesButResults[] = "../step0/output/sumBut.root"; 
-const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; 
-//const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root"; 
+//const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; 
+const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root"; 
 const char Str_RootFilesResultsSignal[] = "output/results.root"; 
 
 void DoPhysics() {

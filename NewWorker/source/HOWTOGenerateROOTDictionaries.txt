@@ -1,0 +1,3 @@
+On das notwendig ist zum einbinden weiﬂ ich nicht.
+
+rootcint -f DictOutput.cc -c TA2CBKinematicFitter.h TA2KFParticle.h Linkdef.h

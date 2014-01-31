@@ -112,7 +112,9 @@ int ProcessDataFileMk1() {
                                  ScalersToRead = ScalerBlockLength2;
                              }
                              while (si <= ScalersToRead) {
-                                 hAllScalerAccum->Fill(EventBlockAnzahlScaler, ptrN[i+bi+ei+si].AsInt); //This fills the debug information histo, which scaler is how often used
+                                 #ifdef DO_ExtendedRawDataChecks
+                                    hAllScalerAccum->Fill(EventBlockAnzahlScaler, ptrN[i+bi+ei+si].AsInt); //This fills the debug information histo, which scaler is how often used
+                                 #endif
                                  if (RawADCData.ExperimentLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.ExperimentLiveCounter = ptrN[i+bi+ei+si].AsInt;
                                  if (RawADCData.UngatedLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.UngatedLiveCounter = ptrN[i+bi+ei+si].AsInt;
                                  if (RawADCData.TaggerLiveCounterScalerCh == EventBlockAnzahlScaler) EventBlock.TaggerLiveCounter = ptrN[i+bi+ei+si].AsInt;
@@ -134,8 +136,11 @@ int ProcessDataFileMk1() {
                          else if (ptrN[i+bi+ei].AsInt == 0xefefefef) { //Error block start
                              AnzahlFehlerBlocks++;
                              EventBlock.NumberErrorBlocks++;
+                             TempEvent.NErrorBlocks++;
                              ZustandFehlerImAktEvent = -1;
-                             hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsADC.Value*100+ptrN[i+bi+ei+3].AsADC.Value) );
+                             #ifdef DO_ExtendedRawDataChecks
+                                hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsInt*10+ptrN[i+bi+ei+3].AsInt) );
+                             #endif
 
                            //  Printf("Error block (buffer#: %5u  BufferEvent#: %3u  Event#: %6u): %3x %3x %3x",AnzahlBuffer,EventAnzahlImBuffer,AnzahlEvents, ptr[i+bi+ei+1],ptr[i+bi+ei+2],ptr[i+bi+ei+3]);
 
@@ -153,7 +158,9 @@ int ProcessDataFileMk1() {
                              } else if (ptrN[(i+bi+ei)].AsADC.Ch == 6) { //Helicity Bit
                                  TempEvent.HelicityBit = ptrN[(i+bi+ei)].AsADC.Value;
                              }
-                             ///hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
+                             #ifdef DO_ExtendedRawDataChecks
+                                hADCOverview->Fill(ptrN[(i+bi+ei)].AsADC.Ch); //This fills the debug information histo, which ADC is how often used
+                             #endif
 
                              int AktADCDetectorID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).DetectorID;
                              int AktADCElementID = LookupTableADC.at(ptrN[(i+bi+ei)].AsADC.Ch).ElementID;

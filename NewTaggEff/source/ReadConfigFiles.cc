@@ -16,6 +16,7 @@ typedef struct TRunsMetaInformation {
     double BeamPolDegree;
     double AbsTaggEff;
     std::string DataPath;
+    double CBEnergyScale;
 } TRunsMetaInformation;
 std::vector<TRunsMetaInformation> RunsMetaInformation;
 int NRunsMetaInformation = 0;
@@ -61,6 +62,7 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
     float ErrorTargetPolDegree = 0;
     float BeamPolDegree = 0;
     float AbsTaggEff = -1.;
+    float CBEnergyScale = 1.0;
 
 
     sprintf(FilePathRunInformation, "%s/RunsMetaInformation.dat", InputPathDataDir); //Path and Filename to File with RunInfo: for all files to analyse
@@ -92,8 +94,8 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
         buffer[0] = '\0';
 
         //
-        if (sscanf(Line, "%s %d %s %d %d %f %d %d %d %d %f %f %f %f %f %s", buffer, &RunNumber, FileName, &RunType, &BeamTimeBlock,
-                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, BufferDataPath ) == 16) {
+        if (sscanf(Line, "%s %d %s %d %d %f %d %d %d %d %f %f %f %f %f %s %f", buffer, &RunNumber, FileName, &RunType, &BeamTimeBlock,
+                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, BufferDataPath, &CBEnergyScale ) == 17) {
             if (!strcmp(buffer, "RunInfo:")) {
                 TRunsMetaInformation TempRunInfo;
                 TempRunInfo.RunNumber = RunNumber;
@@ -113,15 +115,16 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
                 TempRunInfo.BeamPolDegree = BeamPolDegree;
                 TempRunInfo.AbsTaggEff = AbsTaggEff;
                 TempRunInfo.DataPath = BufferDataPath;
+                TempRunInfo.CBEnergyScale = CBEnergyScale;
 
                 RunsMetaInformation.push_back(TempRunInfo);
-                if (fDebugInfo) Printf("Run %i info added (16 info): %d %d %f %f %s", AktElementNr, RunNumber, RunType, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
+                if (fDebugInfo) Printf("Run %i info added (17 info): %d %d %f %f %f %s", AktElementNr, RunNumber, RunType, LaddP2Ratio, AbsTaggEff, CBEnergyScale, TempRunInfo.DataPath.c_str() );
                 AktElementNr++;
             }
         }
 
-        if (sscanf(Line, "%s %d %s %d %d %d %f %d %d %d %d %f %f %f %f %f %s", buffer, &RunNumber, FileName, &TaggEffCorrespondingRun, &TaggEffPartNo, &BeamTimeBlock,
-                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, BufferDataPath ) == 17) {
+        if (sscanf(Line, "%s %d %s %d %d %d %f %d %d %d %d %f %f %f %f %f %s %f", buffer, &RunNumber, FileName, &TaggEffCorrespondingRun, &TaggEffPartNo, &BeamTimeBlock,
+                   &RunDateTime, &TargetNMRSignal, &TargetOrient, &HelBitPresent, &AcquCrash, &LaddP2Ratio, &TargetPolDegree, &ErrorTargetPolDegree, &BeamPolDegree, &AbsTaggEff, BufferDataPath, &CBEnergyScale ) == 18) {
             if (!strcmp(buffer, "TaggRunInfo:")) {
                 TRunsMetaInformation TempRunInfo;
                 TempRunInfo.RunNumber = RunNumber;
@@ -141,6 +144,8 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
                 TempRunInfo.BeamPolDegree = BeamPolDegree;
                 TempRunInfo.AbsTaggEff = AbsTaggEff;
                 TempRunInfo.DataPath = BufferDataPath;
+                TempRunInfo.CBEnergyScale = CBEnergyScale;
+
                 RunsMetaInformation.push_back(TempRunInfo);
 
                 if ( LastTaggEffCorrespondingRun != TaggEffCorrespondingRun ) {
@@ -179,7 +184,7 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
                 if (TaggEffPartNo == 2) { LastRunMeasurement = AktElementNr; LastBeamTimeBlock = BeamTimeBlock; }
                 if (TaggEffPartNo == 3) { LastRunBackground2 = AktElementNr; }
 
-                if (fDebugInfo) Printf("TaggEffRun %i info added (17 info): %d %d %d %f %f %s", AktElementNr, RunNumber, TaggEffCorrespondingRun, TaggEffPartNo, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
+                if (fDebugInfo) Printf("TaggEffRun %i info added (18 info): %d %d %d %f %f %s", AktElementNr, RunNumber, TaggEffCorrespondingRun, TaggEffPartNo, LaddP2Ratio, AbsTaggEff, TempRunInfo.DataPath.c_str() );
                 AktElementNr++;
             }
         }
@@ -307,22 +312,22 @@ int WriteRunsInformationConfigurationFile (int WriteAbsTaggEffNew = 0) {
 
     for (int i=0; i<NRunsMetaInformation; i++) {
         if (RunsMetaInformation.at(i).RunType == 1) {
-            fprintf(fOutputFile, "TaggRunInfo:\t%d\t%s\t%d\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\n", RunsMetaInformation.at(i).RunNumber, RunsMetaInformation.at(i).FileName.c_str(),
+            fprintf(fOutputFile, "TaggRunInfo:\t%d\t%s\t%d\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%f\n", RunsMetaInformation.at(i).RunNumber, RunsMetaInformation.at(i).FileName.c_str(),
                 RunsMetaInformation.at(i).TaggEffCorrespondingRun, RunsMetaInformation.at(i).TaggEffPartNo, RunsMetaInformation.at(i).BeamTimeBlock, RunsMetaInformation.at(i).RunDateTime,
                 RunsMetaInformation.at(i).TargetNMRSignal, RunsMetaInformation.at(i).TargetOrient, RunsMetaInformation.at(i).HelBitPresent,
                 RunsMetaInformation.at(i).AcquCrash, RunsMetaInformation.at(i).LaddP2Ratio, RunsMetaInformation.at(i).TargetPolDegree,
                 RunsMetaInformation.at(i).ErrorTargetPolDegree, RunsMetaInformation.at(i).BeamPolDegree, RunsMetaInformation.at(i).AbsTaggEff,
-                   RunsMetaInformation.at(i).DataPath.c_str() );
+                   RunsMetaInformation.at(i).DataPath.c_str(), RunsMetaInformation.at(i).CBEnergyScale );
 
         } else {
             Double_t TempAbsTaggEff = RunsMetaInformation.at(i).AbsTaggEff;
             if (WriteAbsTaggEffNew) TempAbsTaggEff = 1/RunsMetaInformation.at(i).LaddP2Ratio;
-            fprintf(fOutputFile, "RunInfo:\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\n", RunsMetaInformation.at(i).RunNumber, RunsMetaInformation.at(i).FileName.c_str(),
+            fprintf(fOutputFile, "RunInfo:\t%d\t%s\t%d\t%d\t%f\t%d\t%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%s\t%f\n", RunsMetaInformation.at(i).RunNumber, RunsMetaInformation.at(i).FileName.c_str(),
                 RunsMetaInformation.at(i).RunType, RunsMetaInformation.at(i).BeamTimeBlock, RunsMetaInformation.at(i).RunDateTime,
                 RunsMetaInformation.at(i).TargetNMRSignal, RunsMetaInformation.at(i).TargetOrient, RunsMetaInformation.at(i).HelBitPresent,
                 RunsMetaInformation.at(i).AcquCrash, RunsMetaInformation.at(i).LaddP2Ratio, RunsMetaInformation.at(i).TargetPolDegree,
                 RunsMetaInformation.at(i).ErrorTargetPolDegree, RunsMetaInformation.at(i).BeamPolDegree, TempAbsTaggEff,
-                   RunsMetaInformation.at(i).DataPath.c_str() );
+                   RunsMetaInformation.at(i).DataPath.c_str(), RunsMetaInformation.at(i).CBEnergyScale );
         }
     }
 
