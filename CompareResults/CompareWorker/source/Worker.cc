@@ -737,6 +737,9 @@ int main(int argc, char **argv) {
     gStyle->SetOptFit(); //To get the Fit Parameters into the FitPanel.
 
     Int_t fSelectedAsym = 0; //0=T, 1=F
+    int DoNotDrawSven = 0;
+    int DoNotDrawPeter = 0;
+    int DoNotDrawPauline = 0;
     for (i=1; i< argc; i++) {
         if (strncmp("--", argv[i], 1)) {
             strcpy(tempStr, argv[i]);
@@ -751,7 +754,9 @@ int main(int argc, char **argv) {
                 break;
             }
         } else {
-//            if (!strcmp("-r", argv[i])) ReplaceRunMetaInfoFile = -1;
+            if (!strcmp("-Sven", argv[i])) DoNotDrawSven = -1;
+            if (!strcmp("-Peter", argv[i])) DoNotDrawPeter = -1;
+            if (!strcmp("-Pauline", argv[i])) DoNotDrawPauline = -1;
         }
     }
 
@@ -781,7 +786,7 @@ int main(int argc, char **argv) {
     }
 */
 
-//    ProcessTaggCh(100,-1, fSelectedAsym, -1);
+//    ProcessTaggCh(100, -1, fSelectedAsym, -1);
 //    PrintDataInformation(230);
     NumberOfSkippedChannels_Sven=0;
     NumberOfSkippedChannels_Peter=0;
@@ -805,9 +810,14 @@ int main(int argc, char **argv) {
 
     TCanvas *c2 = new TCanvas(tempStr);
     c2->Divide(3,2);
-    for (i=0;i<5;i++) {
+    int NHistosDrawn = 0;
+    for (i=0;i<5;i++) { //i = loop through parameters
         c2->cd(i+1);
-        for (int k=0;k<3;k++) {
+        NHistosDrawn = 0;
+        for (int k=0;k<3;k++) { //k = loop through results from people
+            if ((k==0) &&(DoNotDrawSven)) continue;
+            if ((k==1) &&(DoNotDrawPeter)) continue;
+            if ((k==2) &&(DoNotDrawPauline)) continue;
             if (i<4) {
                 sprintf(tempStr, "Parameter_%d_%d", i, k);
             } else {
@@ -815,7 +825,7 @@ int main(int argc, char **argv) {
             }
             TH1D *h1 = (TH1D*)FitResults.at(i)->ProjectionX(tempStr,k+1,k+1);
             h1->SetLineColor(k+1);
-            if (k==0) {
+            if (NHistosDrawn==0) {
                 h1->Draw("");
                 if (fSelectedAsym==0) { //T
                     switch (i) {
@@ -837,9 +847,11 @@ int main(int argc, char **argv) {
             } else {
                 h1->Draw("same");
             }
+            NHistosDrawn++;
         }
     }
 
+    //ProcessTaggCh(125, -1, fSelectedAsym, -1);
 
 
     theApp->SetPrompt("NewCompare %d: ");

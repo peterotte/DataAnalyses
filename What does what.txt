@@ -1,6 +1,10 @@
 data
 - Kalibrationsdateien von allen Strahlzeiten: Sep 2010, Feb 2011, Mai 2013
 
+in /datapool: Wechsel zwischen den Analyseergebnissen mit und ohne Errorblock Events:
+- 2010_09/ChangeToWithErrorBlocks.sh order ./ChangeToWithoutErrorBlocks.sh
+- 2011_02 dito
+
 NewWorker
 - Bereichnet einen normalen Run oder TaggEff Run
 - Parameter:
@@ -57,7 +61,11 @@ analysis
 - Theory: Daten von MAID, MAIDDMT und SAID herunterladen und in root Dateien verpacken
 
 CompareResults
-- Root Makros, zum Vergleichen den eigenen Daten mit Svens und Paulines
+- ./CompareResults/CompareWorker/build/bin/CompareWorker
+- Vergleich der Daten von Sven, Pauline und mir.
+- Parameter: 0 = T, 1 = F
+    -Pauline = plot ohne Paulines Daten
+    -Sven, -Peter dito
 
 
 -----------------------------------------------------------------

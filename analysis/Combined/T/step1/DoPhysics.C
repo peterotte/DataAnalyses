@@ -22,6 +22,7 @@ void DoPhysics() {
 	TFile *RootFileButHistograms = new TFile(Str_RootFilesButResults);
 	h2TempP = (TH2D*)gROOT->FindObject("MissingMassCombinedSignalLTCorrectedTP");
 	h2TempM = (TH2D*)gROOT->FindObject("MissingMassCombinedSignalLTCorrectedTM");
+	TH2D *h2TargetPol = (TH2D*)gROOT->FindObject("TargetPolT");
 	h1PhotonFluxBut = (TH1D*)gROOT->FindObject("PhotonFluxLTCorrected");
 
 	TFile *RootFileHHistograms = new TFile(Str_RootFilesHResults);
@@ -42,9 +43,21 @@ void DoPhysics() {
 	h2TempCopy[1] = (TH2D*)h2TempCopy[0]->Clone("ButDivH");
 	h2TempCopy[1]->Divide(h2TempH);
 
-	//Divide by H
+	//Divide by Polarisations
+	//TargetPol for T
+	printf("Calculating TargetPol 2D...\n");
+	TH2D *hTargetPol2D = new TH2D("TargetPol2D", "TargetPol2D", 352, 0, 352, 18, 0, 180);
+	for (int i=1; i<=352; i++) {
+		TH1D *h1Temp = h2TargetPol->ProjectionY("Temp",i,i);
+		for (int k=1; k<=18; k++) {
+			hTargetPol2D->SetBinContent(i, k, h1Temp->GetMean(););
+			hTargetPol2D->SetBinError(i, k, h1Temp->GetMeanError(););
+		}
+		delete h1Temp;
+	}
 	h2TempCopy[3] = (TH2D*)h2TempCopy[1]->Clone("ButDivHDivPols");
-	h2TempCopy[3]->Scale(1/0.627); //TargetPol
+	//h2TempCopy[3]->Scale(1/0.627); //TargetPol
+	h2TempCopy[3]->Divide(hTargetPol2D);
 
 	//Correction for photon flux
 	h1PhotonFluxCorrection = (TH1D*)h1PhotonFluxH->Clone("PhotonFluxCorrection");

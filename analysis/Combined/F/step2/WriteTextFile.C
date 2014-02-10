@@ -46,7 +46,7 @@ void BatchTextOutAll(Int_t ANBinsToCombine){
 		printf("TH2D ButDivHDivPolsFlux not found.\n");
 		exit(1);
 	} else {
-		printf("TH2D ButDivHDivPolsFlux found at 0x%8x.\n",h2);
+		printf("TH2D ButDivHDivPolsFlux found at 0x%08x.\n",h2);
 	}
 
 

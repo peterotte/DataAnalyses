@@ -3,8 +3,8 @@
 #include <cstddef>
 
 const char Str_RootFilesButResults[] = "../step0/output/sumBut.root"; 
-//const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; 
-const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root"; 
+const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; //Photon Flux correction between But/H
+//const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root";     //No Photon Flux correction between But/H
 const char Str_RootFileBeamPolShape[] = "../../beampolshape/output/BeamPolValues.root";
 const char Str_RootFilesResultsSignal[] = "output/results.root"; 
 
@@ -23,6 +23,8 @@ void DoPhysics() {
 	TFile *RootFileButHistograms = new TFile(Str_RootFilesButResults);
 	h2TempP = (TH2D*)gROOT->FindObject("MissingMassCombinedSignalLTCorrectedFP");
 	h2TempM = (TH2D*)gROOT->FindObject("MissingMassCombinedSignalLTCorrectedFM");
+	TH2D *h2TargetPol = (TH2D*)gROOT->FindObject("TargetPolF");
+	TH2D *h2BeamPol = (TH2D*)gROOT->FindObject("BeamPol");
 	h1PhotonFluxBut = (TH1D*)gROOT->FindObject("PhotonFluxLTCorrected");
 
 	TFile *RootFileHHistograms = new TFile(Str_RootFilesHResults);
@@ -47,14 +49,38 @@ void DoPhysics() {
 	h2TempCopy[1] = (TH2D*)h2TempCopy[0]->Clone("ButDivH");
 	h2TempCopy[1]->Divide(h2TempH);
 
-	//Divide by H
+	//Divide by H, Beamshape of circ. pol. Photons
 	h2TempCopy[2] = (TH2D*)h2TempCopy[1]->Clone("ButDivHDivBeamShape");
 	h2TempCopy[2]->Divide(h2BeamPolShape);
 
-	//Divide by H
+	//Divide by Polarisations
+	//TargetPol for F
+	printf("Calculating TargetPol 2D...\n");
+	TH2D *hTargetPol2D = new TH2D("TargetPol2D", "TargetPol2D", 352, 0, 352, 18, 0, 180);
+	for (int i=1; i<=352; i++) {
+		TH1D *h1Temp = h2TargetPol->ProjectionY("Temp",i,i);
+		for (int k=1; k<=18; k++) {
+			hTargetPol2D->SetBinContent(i, k, h1Temp->GetMean(););
+			hTargetPol2D->SetBinError(i, k, h1Temp->GetMeanError(););
+		}
+		delete h1Temp;
+	}
+	//BeamPol for F
+	printf("Calculating BeamPol 2D...\n");
+	TH2D *hBeamPol2D = new TH2D("BeamPol2D", "BeamPol2D", 352, 0, 352, 18, 0, 180);
+	for (int i=1; i<=352; i++) {
+		TH1D *h1Temp = h2BeamPol->ProjectionY("Temp",i,i);
+		for (int k=1; k<=352; k++) {
+			hBeamPol2D->SetBinContent(i, k, h1Temp->GetMean(););
+			hBeamPol2D->SetBinError(i, k, h1Temp->GetMeanError(););
+		}
+		delete h1Temp;
+	}
 	h2TempCopy[3] = (TH2D*)h2TempCopy[2]->Clone("ButDivHDivPols");
-	h2TempCopy[3]->Scale(1/0.8273); //BeamPol
-	h2TempCopy[3]->Scale(1/0.627); //TargetPol
+	//h2TempCopy[3]->Scale(1/0.8273); //BeamPol
+	h2TempCopy[3]->Divide(hBeamPol2D);
+	//h2TempCopy[3]->Scale(1/0.627); //TargetPol
+	h2TempCopy[3]->Divide(hTargetPol2D);
 
 	//Correction for photon flux
 	h1PhotonFluxCorrection = (TH1D*)h1PhotonFluxH->Clone("PhotonFluxCorrection");

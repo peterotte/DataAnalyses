@@ -62,6 +62,7 @@ void H_ET_Subtraction() {
 	printf("Scale by: %f\n", ScaleFactor);
 
 
+	Scale1D("MesonInvariantMass");
 	Scale2D("MissingMassCombinedSignal", ScaleFactor);
 	Scale1D("CountNumberOfHistos");
 	Scale1D("hDroppedEvents");
@@ -69,18 +70,10 @@ void H_ET_Subtraction() {
 	Scale2D("hTaggerTime");
 	Scale1D("LiveTimeAccum");
 	Scale2D("MissingMassCombinedSignalLTCorrected", ScaleFactor);
-	Scale2D("MissingMassCombinedSignalLTCorrectedFP");
-	Scale2D("MissingMassCombinedSignalLTCorrectedFM");
-	Scale2D("MissingMassCombinedSignalLTCorrectedTP");
-	Scale2D("MissingMassCombinedSignalLTCorrectedTM");
 	Scale1D("TaggerScalerAccumLTCorrected");
 	Scale1D("PhotonFluxLTCorrectedWOTaggEff");
 	Scale1D("PhotonFluxLTCorrected");
-	Scale1D("BeamPol");
-	Scale2D("TargetPolF");
-	Scale2D("TargetPolT");
-	Scale1D("TaggEffAbs");
-	Scale1D("TaggEffAbsAllMesons");
+	Scale2D("TaggEffAbsAll");
 
 	RootFileFT->Close();
 	RootFileET->Close();
@@ -89,6 +82,4 @@ void H_ET_Subtraction() {
 	RootFile2->Close();
 
 	printf("Finished.\n");
-
-	gApplication->Terminate();
 }

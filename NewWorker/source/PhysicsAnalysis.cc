@@ -31,8 +31,11 @@ double GetExpLiveTimeRatio() {
 double GetExperimentLiveCounterAcc() {
     return hLiveTimeAccum->GetBinContent(2);
 }
-double GetUngatedLiveCounterAcc() {
+double GetUngatedLiveCounterAcc() { //Skipp Events with Dropped Events
     return hLiveTimeAccum->GetBinContent(1);
+}
+double GetUngatedLiveCounterAllEventsAcc() { //Also Events with Dropped Events
+    return hLiveTimeAccum->GetBinContent(4);
 }
 double GetTaggerLiveCounterAcc() {
     return hLiveTimeAccum->GetBinContent(3);
@@ -43,6 +46,9 @@ double GetExpLiveTimeAccRatio() {
 }
 double GetTaggerLiveTimeAccRatio() {
     return ((1.*GetTaggerLiveCounterAcc()) / (1.*GetUngatedLiveCounterAcc()));
+}
+double GetNotDroppedEventsRatio() {
+    return ((1.*GetUngatedLiveCounterAcc()) / (1.*GetUngatedLiveCounterAllEventsAcc()));
 }
 //-------------------------------------------------------------------------------
 
@@ -65,9 +71,10 @@ int Handle_ScalerCounts(int fNRejectedEvents, int fNTotalEvents) {
     }
 
     double CorrectionFactor = (1.-(double)fNRejectedEvents/(double)fNTotalEvents);
-    hLiveTimeAccum->Fill(0.5, GetUngatedLiveCounter()); //Ungated
+    hLiveTimeAccum->Fill(0.5, GetUngatedLiveCounter() * CorrectionFactor); //Ungated
     hLiveTimeAccum->Fill(1.5, GetExperimentLiveCounter() * CorrectionFactor ) ; //CB Gated, corrected by the dropped Events = dead time
     hLiveTimeAccum->Fill(2.5, GetTaggerLiveCounter() * CorrectionFactor ); //Tagger Gated
+    hLiveTimeAccum->Fill(3.5, GetUngatedLiveCounter() ); //Ungated, not corrected by Dropped Events
 
     if (CorrectionFactor <= 1) printf("LiveTime corrected by: %f\n", CorrectionFactor);
 
@@ -89,15 +96,37 @@ int Do_PhysicsAnalysis () {
 
         ///printf("New Event ID: ??\tTotalN:%d\n", MyEvent.CBClusters.size());
 
+        //** Start hCBEnergySumAllEvents
+        double CBEnergySum = 0;
+
+        int k=0;
+        while (k<MyEvent.CBClusters.size()){
+            CBEnergySum = CBEnergySum + MyEvent.CBClusters.at(k).Energy;
+            int TempPartID = 22;
+            if (MyEvent.CBClusters.at(k).IsCharged) TempPartID = 2212;
+           /// printf("ID: %d\tphi: %f\tth: %f\tp: %f\tE: %f\n", TempPartID, MyEvent.CBClusters.at(k).Position.phi*180/TMath::Pi(), MyEvent.CBClusters.at(k).Position.theta*180/TMath::Pi(),
+              ///     MyEvent.CBClusters.at(k).Position.r, MyEvent.CBClusters.at(k).Energy );
+
+            if (MyEvent.CBClusters.at(k).IsCharged) {
+                MyEvent.CBClusters.erase(MyEvent.CBClusters.begin() + k);
+            } else {
+                k++;
+            }
+        }
+        hCBEnergySumAllEvents->Fill(CBEnergySum);
+
+        //** End hCBEnergySumAllEvents
+
+ 		//Do not analyse Events with Error Blocks
         NTotalEvents++;
-        if (MyEvent.NErrorBlocks > 0) {
+/*        if (MyEvent.NErrorBlocks > 0) {
             //printf("WARNING: EventID: %d has NErrorBlocks: %d\n", MyEvent.EventID, MyEvent.NErrorBlocks);
             NRejectedEvents++;
             i++;
             continue;
             printf("This SHOULD NEVER HAPPEN!\n");
         };
-
+*/
         std::vector<TLorentzVector> IncomingPhotons;
         std::vector<double> IncomingPhotonsTime;
         std::vector<Int_t> IncomingPhotonsTaggerCh;
@@ -127,11 +156,12 @@ int Do_PhysicsAnalysis () {
                 }
             }
         }
-
+/*
         double CBEnergySum = 0;
 
         //Only Uncharged Particles, please
         int k=0;
+
         while (k<MyEvent.CBClusters.size()){
             CBEnergySum = CBEnergySum + MyEvent.CBClusters.at(k).Energy;
             int TempPartID = 22;
@@ -144,7 +174,7 @@ int Do_PhysicsAnalysis () {
             } else {
                 k++;
             }
-        }
+        }*/
         hCBEnergySum->Fill(CBEnergySum);
         hCBEnergySum_VS_EventID->Fill(MyEvent.EventID, CBEnergySum);
 
@@ -196,7 +226,7 @@ int Do_PhysicsAnalysis () {
                                 Printf("WARNING: Unexpected Helicity Bit: %d",MyEvent.HelicityBit);
                             }
                         }
-                        if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;}
+                        //if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;} //No longer necessary because faulty files do not get used for F later
 
 
                         if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) {
@@ -277,11 +307,13 @@ int Do_PhysicsAnalysis () {
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                            hCBEnergySumFP->Fill(CBEnergySum);
                                         } else if (EffHel <= -0.35) {
                                             hMissingMassCombinedPromptFM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                            hCBEnergySumFM->Fill(CBEnergySum);
                                         }
 
 
@@ -295,11 +327,13 @@ int Do_PhysicsAnalysis () {
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                            hCBEnergySumTP->Fill(CBEnergySum);
                                         } else if (EffHel <= -0.35) {
                                             hMissingMassCombinedPromptTM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                            hCBEnergySumTM->Fill(CBEnergySum);
                                         }
 
                                         //////////////////////////////////////
@@ -423,21 +457,24 @@ int Do_FinalPhysicsAnalysis () {
     gROOT->cd("PostRunPhysics");
     //CB Livetime correction
     hMissingMassCombinedSignalLTCorrected = (TH2D*)hMissingMassCombinedSignal->Clone("MissingMassCombinedSignalLTCorrected");
-    hMissingMassCombinedSignalLTCorrected->Scale(1./GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrected->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
     //F
     hMissingMassCombinedSignalLTCorrectedFP = (TH2D*)hMissingMassCombinedSignalFP->Clone("MissingMassCombinedSignalLTCorrectedFP");
-    hMissingMassCombinedSignalLTCorrectedFP->Scale(1./GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedFP->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
     hMissingMassCombinedSignalLTCorrectedFM = (TH2D*)hMissingMassCombinedSignalFM->Clone("MissingMassCombinedSignalLTCorrectedFM");
-    hMissingMassCombinedSignalLTCorrectedFM->Scale(1./GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedFM->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
     //T
     hMissingMassCombinedSignalLTCorrectedTP = (TH2D*)hMissingMassCombinedSignalTP->Clone("MissingMassCombinedSignalLTCorrectedTP");
-    hMissingMassCombinedSignalLTCorrectedTP->Scale(1./GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedTP->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
     hMissingMassCombinedSignalLTCorrectedTM = (TH2D*)hMissingMassCombinedSignalTM->Clone("MissingMassCombinedSignalLTCorrectedTM");
-    hMissingMassCombinedSignalLTCorrectedTM->Scale(1./GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedTM->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
 
     //Tagger Livetime correction
+    hTaggerScalerAccumLTCorrectedAllEvents = (TH1D*)hTaggerScalerAccum->Clone("TaggerScalerAccumLTCorrectedInclDroppedEvents");
+    hTaggerScalerAccumLTCorrectedAllEvents->Scale(1./GetTaggerLiveTimeAccRatio());
+
     hTaggerScalerAccumLTCorrected = (TH1D*)hTaggerScalerAccum->Clone("TaggerScalerAccumLTCorrected");
-    hTaggerScalerAccumLTCorrected->Scale(1./GetTaggerLiveTimeAccRatio());
+    hTaggerScalerAccumLTCorrected->Scale(1.*GetNotDroppedEventsRatio()/GetTaggerLiveTimeAccRatio());
 
     //Photons
     hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff = (TH1D*)hTaggerScalerAccumLTCorrected->Clone("PhotonFluxLTCorrectedWOTaggEff");

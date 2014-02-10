@@ -86,20 +86,33 @@ void DoFile(int fFileNumber) {
     // ***************************************************************
     // Connect to Histograms
     // ***************************************************************
-    //TDC Hits
+    //Meson Mass
     TH1D *histMesonMass1D = (TH1D*)file1->Get("MesonInvariantMass");
     if( !histMesonMass1D ) {
         printf("WARNING: File %d: 1D Meson Invariant Mass histogram not found.\n", fFileNumber);
+        return;
+    }
+    //Dropped Events
+    TH1D *histDroppedEvents = (TH1D*)file1->Get("hDroppedEvents");
+    if( !histDroppedEvents ) {
+        printf("WARNING: File %d: 1D Dropped Events histogram not found.\n", fFileNumber);
         return;
     }
 
     if (ProgramDebugMode) printf("INFO: All histograms connected.\n");
     // ***************************************************************
 
+    double TempValue = 0;
+
+    if (histDroppedEvents->GetBinContent(2) > 0) {
+        TempValue = histDroppedEvents->GetBinContent(1)/histDroppedEvents->GetBinContent(2);
+    }
+    hDroppedEventsRatio->SetBinContent(fFileNumber, TempValue);
+    hTotalEvents->SetBinContent(fFileNumber, histDroppedEvents->GetBinContent(2));
 
 
 
-
+    //Begin: CB Meson Mass
     Char_t TempStr[1024];
     sprintf(TempStr,"PrevFitTMP");
     delete gROOT->FindObject(TempStr);
@@ -123,14 +136,14 @@ void DoFile(int fFileNumber) {
         hMesonMassWidthVSFiles->SetBinContent(fFileNumber, PrevFitTMP->GetParameter(2));
         hMesonMassWidthVSFiles->SetBinError(fFileNumber, PrevFitTMP->GetParError(2));
 
-        RunsMetaInformation.at(fFileNumber).CBEnergyScale = MassPion0 / PrevFitTMP->GetParameter(1);
+        RunsMetaInformation.at(fFileNumber).CBEnergyScale = RunsMetaInformation.at(fFileNumber).CBEnergyScale * (MassPion0 / PrevFitTMP->GetParameter(1));
 
         if ( (RunsMetaInformation.at(fFileNumber).CBEnergyScale > 1.05) || (RunsMetaInformation.at(fFileNumber).CBEnergyScale < 0.95) ) {
             printf("WARNING: File %d: Correction value out of 5 percent range (%f).\n", fFileNumber, RunsMetaInformation.at(fFileNumber).CBEnergyScale);
         }
 
     } else {
-        printf("ERROR: Fit did not converge.\n");
+        printf("ERROR: File %d: Fit did not converge.\n", fFileNumber);
         RunsMetaInformation.at(fFileNumber).CBEnergyScale = 1.0;
     }
 
@@ -169,14 +182,17 @@ void DoAllFiles() {
 int PlotAllMeasurements() {
 
     TCanvas *c1 = new TCanvas("MyCanvas");
-    c1->Divide(2,1);
+    c1->Divide(2,2);
     gStyle->SetPalette(1);
 
     c1->cd(1);
     ((TH1D*)gROOT->FindObject("MesonMassCenterVSFiles"))->Draw("");
     c1->cd(2);
     ((TH1D*)gROOT->FindObject("MesonMassWidthVSFiles"))->Draw("");
-
+    c1->cd(3);
+    hDroppedEventsRatio->Draw();
+    c1->cd(4);
+    hTotalEvents->Draw();
     return 0;
 }
 

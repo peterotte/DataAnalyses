@@ -139,7 +139,8 @@ int ProcessDataFileMk1() {
                              TempEvent.NErrorBlocks++;
                              ZustandFehlerImAktEvent = -1;
                              #ifdef DO_ExtendedRawDataChecks
-                                hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsInt*10+ptrN[i+bi+ei+3].AsInt) );
+                                //printf("WARNING: Errorblock: %9d %9d\n", ptrN[i+bi+ei+2].AsInt, ptrN[i+bi+ei+3].AsInt);
+                                hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsADC.Value*10+ptrN[i+bi+ei+3].AsADC.Value) );
                              #endif
 
                            //  Printf("Error block (buffer#: %5u  BufferEvent#: %3u  Event#: %6u): %3x %3x %3x",AnzahlBuffer,EventAnzahlImBuffer,AnzahlEvents, ptr[i+bi+ei+1],ptr[i+bi+ei+2],ptr[i+bi+ei+3]);

@@ -61,6 +61,8 @@ int main(int argc, char **argv) {
     gROOT->cd();
     hMesonMassCenterVSFiles = new TH1D("MesonMassCenterVSFiles", "MesonMassCenterVSFiles", 1600,0,1600);
     hMesonMassWidthVSFiles = new TH1D("MesonMassWidthVSFiles", "MesonMassWidthVSFiles", 1600,0,1600);
+    hDroppedEventsRatio = new TH1D("DroppedEventsRatio", "DroppedEventsRatio", 1600, 0, 1600);
+    hTotalEvents = new TH1D("hTotalEvents", "hTotalEvents", 1600, 0, 1600);
     // ** Prepare Histograms End **
 
     DoAllFiles();

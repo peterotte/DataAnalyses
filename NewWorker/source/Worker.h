@@ -135,7 +135,7 @@ int NRunsMetaInformation = 0;
 #endif
 //Scaler
 TH1D *hTaggerScalerAccum, *hTriggerScalerAccum;
-TH1D *hTaggerScalerAccumLTCorrected;
+TH1D *hTaggerScalerAccumLTCorrectedAllEvents, *hTaggerScalerAccumLTCorrected; //With Dropped Events and without
 TH1D *hLiveTimeAccum;
 TH1D *hTaggerScalerAccumPhotonsLTCorrected, *hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff;
 
@@ -171,7 +171,8 @@ TH1D *hMesonInvariantMass, *hTwoParticlesInvariantMass;
 TH1D *hMesonInvariantMassCorrected;
 TH1D *hTimeMesonTagger;
 TH1D *hNPhotons;
-TH1D *hCBEnergySum;
+TH1D *hCBEnergySum, *hCBEnergySumAllEvents; //W/O and with Dropped Events
+TH1D *hCBEnergySumTP, *hCBEnergySumTM, *hCBEnergySumFP, *hCBEnergySumFM; //CB EnergySum for T and F for + and -
 TH2D *hCBEnergySum_VS_EventID;
 TH1D *hCB2GammaDeltaTime;
 TH2D *hMesonPhi_VS_EventID, *hMesonThetaLab_VS_EventID;
@@ -222,8 +223,8 @@ int InitCalibHistograms() {
         hADCOverview = new TH1D("hADCOverview","hADCOverview",66000,0,66000);
         hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
         //Error checks
-    //    hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 2000, 0, 2000000, 100000, 0, 100000);
-        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 200, 0, 200000, 20000, 30000, 50000);
+        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks",   2000, 0, 2000000, 1000, 0, 1000); //Good range for Sep 2010
+    //    hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 200, 0, 200000, 20000, 30000, 50000); //Good range for May 2013
     #endif
     hDroppedEvents = new TH1D("hDroppedEvents", "hDroppedEvents", 2, 0, 2);
 
@@ -255,7 +256,7 @@ int InitCalibHistograms() {
     gDirectory->mkdir("Trigger");
     gDirectory->cd("Trigger");
     hTriggerScalerAccum = new TH1D("TriggerScalerAccum", "TriggerScalerAccum", 256, 0, 256); //Do not call SumW2 here, but after filling. Otherwise wrong errors
-    hLiveTimeAccum = new TH1D("LiveTimeAccum", "LiveTimeAccum", 3, 0, 3);  //Bin 1: Ungated, Bin 2: CB Gated, Bin3: Tagger gated //Do not call SumW2 here,
+    hLiveTimeAccum = new TH1D("LiveTimeAccum", "LiveTimeAccum", 4, 0, 4);  //Bin 1: Ungated, Bin 2: CB Gated, Bin3: Tagger gated, Bin4: Ungated(not corrected by Dropped Events) //Do not call SumW2 here,
 
     gROOT->cd("Calibration");
     gDirectory->mkdir("Tagger");
@@ -314,6 +315,11 @@ int InitCalibHistograms() {
     hTimeMesonTagger = new TH1D("hTimeMesonTagger", "hTimeMesonTagger", 400, -200, 200);
     hNPhotons = new TH1D("NPhotons", "NPhotons", 20, 0, 20);
     hCBEnergySum = new TH1D("CBEnergySum", "CBEnergySum", 250, 0, 500); hCBEnergySum->Sumw2();
+    hCBEnergySumTP = new TH1D("CBEnergySumTP", "CBEnergySumTP", 250, 0, 500); hCBEnergySumTP->Sumw2();
+    hCBEnergySumTM = new TH1D("CBEnergySumTM", "CBEnergySumTM", 250, 0, 500); hCBEnergySumTM->Sumw2();
+    hCBEnergySumFP = new TH1D("CBEnergySumFP", "CBEnergySumFP", 250, 0, 500); hCBEnergySumFP->Sumw2();
+    hCBEnergySumFM = new TH1D("CBEnergySumFM", "CBEnergySumFM", 250, 0, 500); hCBEnergySumFM->Sumw2();
+    hCBEnergySumAllEvents = new TH1D("CBEnergySumAllEvents", "CBEnergySumAllEvents", 250, 0, 500); hCBEnergySumAllEvents->Sumw2();
     hCBEnergySum_VS_EventID = new TH2D("hCBEnergySum_VS_EventID", "hCBEnergySum_VS_EventID", 2000, 0, 2000000, 250, 0, 500);
     hCB2GammaDeltaTime = new TH1D("hCB2GammaDeltaTime", "hCB2GammaDeltaTime", 200, -100, 100);
 

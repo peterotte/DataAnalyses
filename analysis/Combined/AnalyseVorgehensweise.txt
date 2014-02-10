@@ -23,13 +23,12 @@ dieses fasst die Daten von
 - 2013 -> NewAnalysis/analysis/Combined/step0/output/sumH.root
 zusammen
 
-im vierten Schitt werden die beiden But Strahlzeit zusammengefasst
-       -> NewAnalysis/analysis/Combined/step0/output/sumBut.root
-
-
 
 3. Berechnungn durchführen
 step1/step1.sh
+Zuerst werden die beiden But Strahlzeiten zusammengefasst
+       -> NewAnalysis/analysis/Combined/F/step0/output/sumBut.root
+
 Makro SubBackgroundBut.C ausführen
 - Difference in But + and -                                            ("ButMissingMassSignalDiff")
 - Divide by H                                                          ("ButDivH")

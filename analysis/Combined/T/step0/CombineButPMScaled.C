@@ -8,9 +8,21 @@ const char Str_RootFilesResultsSignal[] = "output/sumButPScaled.root";
 
 double ScaleFactor = 1.;
 
+//********************************************************************
+
+// Debug Option: Set Flux Correction to 1 for all channels
+int DebugOptionAllChannelsRatioEqual = 0; //0 = Debug disabled, scaling for each ch individually
+
+//Debug Option: Scale Target - Beamtime by Factor. Normal is 1.0
+int DebugOptionScaleTargetMinusBeamtime = 0; //0 = Debug option disabled
+double ScaleTargetMinusBeamtime = 1.2;
+
+//********************************************************************
+
 TFile *RootFileP, *RootFileM, *RootFile2;
 
 void Scale1D(char *fTempStr, TH1D *hRatio) {
+	printf("Scale: %s\n", fTempStr);
 	RootFileP->cd();
 	TH1D *h1 = (TH1D*)gROOT->FindObject(fTempStr);
 	if (h1) {
@@ -23,6 +35,7 @@ void Scale1D(char *fTempStr, TH1D *hRatio) {
 }
 
 void Scale1DSimple(char *fTempStr, double fRatio) {
+	printf("Scale: %s\n", fTempStr);
 	RootFileP->cd();
 	TH1D *h1 = (TH1D*)gROOT->FindObject(fTempStr);
 	if (h1) {
@@ -35,6 +48,7 @@ void Scale1DSimple(char *fTempStr, double fRatio) {
 }
 
 void CopyElement(char *fTempStr) {
+	printf("Copy: %s\n", fTempStr);
 	RootFileP->cd();
 	TObject *o = gROOT->FindObject(fTempStr);
 	if (o) {
@@ -46,6 +60,7 @@ void CopyElement(char *fTempStr) {
 }
 
 void Scale2D(char *fTempStr, TH1D *hRatio) {
+	printf("Scale: %s\n", fTempStr);
 	RootFileP->cd();
 	TH2D *h2 = (TH2D*)gROOT->FindObject(fTempStr);
 	if (h2) {
@@ -75,13 +90,28 @@ int  CombineButPMScaled() {
 
 	printf("Scale by: %f\n", ScaleFactor);
 
+//	gROOT->cd();
+	RootFile2 = new TFile(Str_RootFilesResultsSignal, "RECREATE");
 
-	gROOT->cd();
 	TH1D *hDiff = hM->Clone("PhotonFluxRatioT");
 	hDiff->Divide(hP);
+
+	if (DebugOptionScaleTargetMinusBeamtime) {
+		printf("WARNING: Debug Option active: Scale Target Minus Beamtime.\n");
+		ScaleFactor = ScaleFactor * ScaleTargetMinusBeamtime;
+		hDiff->Scale(ScaleTargetMinusBeamtime);
+		printf("Now: Scale by: %f\n", ScaleFactor);
+	}
+
+	if (DebugOptionAllChannelsRatioEqual) {
+		printf("WARNING: Debug Option active: Flux Ratio is set to 1 for channels.\n");
+		for (int i=1;i<=(hDiff->GetNbinsX());i++) {
+			hDiff->SetBinContent(i,ScaleFactor);
+			hDiff->SetBinError(i,0);
+		}
+	}
 	//hDiff->Draw();
 
-	RootFile2 = new TFile(Str_RootFilesResultsSignal, "RECREATE");
 
 	Scale2D("MissingMassCombinedSignal", hDiff);
 	CopyElement("CountNumberOfHistos");
@@ -94,14 +124,16 @@ int  CombineButPMScaled() {
 	Scale2D("MissingMassCombinedSignalLTCorrectedFM", hDiff);
 	Scale2D("MissingMassCombinedSignalLTCorrectedTP", hDiff);
 	Scale2D("MissingMassCombinedSignalLTCorrectedTM", hDiff);
+	Scale1D("TaggerScalerAccumLTCorrectedInclDroppedEvents", hDiff);
 	Scale1D("TaggerScalerAccumLTCorrected", hDiff);
 	Scale1D("PhotonFluxLTCorrectedWOTaggEff", hDiff);
 	Scale1D("PhotonFluxLTCorrected", hDiff);
-	Scale1DSimple("BeamPol", ScaleFactor);
+	Scale2D("BeamPol", hDiff);
 	Scale2D("TargetPolF", hDiff);
 	Scale2D("TargetPolT", hDiff);
-	Scale1DSimple("TaggEffAbs", ScaleFactor);
-	Scale1DSimple("TaggEffAbsAllMesons", ScaleFactor);
+	Scale2D("TaggEffAbsT", hDiff);
+	Scale2D("TaggEffAbsF", hDiff);
+	Scale2D("TaggEffAbsAll", hDiff);
 
 	gROOT->cd();
 	TH1D *hDiffAfter = hP->Clone("PhotonFluxRatioTAfter");

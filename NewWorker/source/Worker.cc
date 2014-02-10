@@ -70,6 +70,11 @@ int SaveSpectraAfterToDisc() {
     hMesonPhi_VS_EventID->Write();
     hMesonThetaLab_VS_EventID->Write();*/
     hMesonInvariantMass->Write();
+    hCBEnergySum->Write();
+    hCBEnergySumTP->Write();
+    hCBEnergySumTM->Write();
+    hCBEnergySumFP->Write();
+    hCBEnergySumFM->Write();
     hMissingMassCombinedSignal->Write();
     hCountNumberOfHistos->Write();
     hDroppedEvents->Write();
@@ -81,6 +86,7 @@ int SaveSpectraAfterToDisc() {
     hMissingMassCombinedSignalLTCorrectedFM->Write();
     hMissingMassCombinedSignalLTCorrectedTP->Write();
     hMissingMassCombinedSignalLTCorrectedTM->Write();
+    hTaggerScalerAccumLTCorrectedAllEvents->Write();
     hTaggerScalerAccumLTCorrected->Write();
     hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff->Write();
     hTaggerScalerAccumPhotonsLTCorrected->Write();

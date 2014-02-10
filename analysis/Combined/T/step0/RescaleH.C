@@ -8,10 +8,15 @@ const char Str_RootFilesHResults_Rescaled[] = "output/sumH_Rescaled.root";
 
 TFile *RootFileButHistograms, *RootFileHHistograms, *RootFileHHistograms_Rescaled;
 
+//********************************************************************
+// Debug Option: Set Flux Correction to 1 for all channels
+
+int DebugOptionAllChannelsRatioEqual = 0; //0 = Debug disabled, scaling for each ch individually
 
 //********************************************************************
 
 void Scale1D(char *fTempStr, TH1D *hRatio) {
+	printf("Scale: %s.\n", fTempStr);
 	RootFileHHistograms->cd();
 	TH1D *h1 = (TH1D*)gROOT->FindObject(fTempStr);
 	if (h1) {
@@ -24,6 +29,7 @@ void Scale1D(char *fTempStr, TH1D *hRatio) {
 }
 
 void Scale1DSimple(char *fTempStr, double fRatio) {
+	printf("Scale: %s.\n", fTempStr);
 	RootFileHHistograms->cd();
 	TH1D *h1 = (TH1D*)gROOT->FindObject(fTempStr);
 	if (h1) {
@@ -36,6 +42,7 @@ void Scale1DSimple(char *fTempStr, double fRatio) {
 }
 
 void CopyElement(char *fTempStr) {
+	printf("Copy: %s.\n", fTempStr);
 	RootFileHHistograms->cd();
 	TObject *o = gROOT->FindObject(fTempStr);
 	if (o) {
@@ -47,6 +54,7 @@ void CopyElement(char *fTempStr) {
 }
 
 void Scale2D(char *fTempStr, TH1D *hRatio) {
+	printf("Scale: %s.\n", fTempStr);
 	RootFileHHistograms->cd();
 	TH2D *h2 = (TH2D*)gROOT->FindObject(fTempStr);
 	if (h2) {
@@ -106,6 +114,14 @@ void RescaleH() {
 	double ScaleFactor = 1/AverageRatio;
 	hFluxRatio->Scale(ScaleFactor);
 
+	if (DebugOptionAllChannelsRatioEqual) {
+		printf("WARNING: Debug Option active: Flux Ratio is set to 1 for channels.\n");
+		for (int i=1;i<=(hFluxRatio->GetNbinsX());i++) {
+			hFluxRatio->SetBinContent(i,1);
+			hFluxRatio->SetBinError(i,0);
+		}
+	}
+
 	//Now Rescale the H-Results individually
 	Scale2D("MissingMassCombinedSignal", hFluxRatio);
 	CopyElement("CountNumberOfHistos");
@@ -114,18 +130,10 @@ void RescaleH() {
 	Scale2D("hTaggerTime", hFluxRatio);
 	CopyElement("LiveTimeAccum");
 	Scale2D("MissingMassCombinedSignalLTCorrected", hFluxRatio);
-	Scale2D("MissingMassCombinedSignalLTCorrectedFP", hFluxRatio);
-	Scale2D("MissingMassCombinedSignalLTCorrectedFM", hFluxRatio);
-	Scale2D("MissingMassCombinedSignalLTCorrectedTP", hFluxRatio);
-	Scale2D("MissingMassCombinedSignalLTCorrectedTM", hFluxRatio);
 	Scale1D("TaggerScalerAccumLTCorrected", hFluxRatio);
 	Scale1D("PhotonFluxLTCorrectedWOTaggEff", hFluxRatio);
 	Scale1D("PhotonFluxLTCorrected", hFluxRatio);
-	CopyElement("BeamPol");
-	Scale2D("TargetPolF", hFluxRatio);
-	Scale2D("TargetPolT", hFluxRatio);
-	CopyElement("TaggEffAbs");
-	CopyElement("TaggEffAbsAllMesons");
+	CopyElement("TaggEffAbsAll");
 
 	RootFileHHistograms_Rescaled->Write();
 	RootFileButHistograms->Close();

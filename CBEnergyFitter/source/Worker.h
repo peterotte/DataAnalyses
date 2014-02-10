@@ -20,5 +20,8 @@ const double MassPion0 = 134.9766;
 
 TH1D *hMesonMassCenterVSFiles, *hMesonMassWidthVSFiles;
 
+TH1D *hDroppedEventsRatio;
+TH1D *hTotalEvents;
+
 
 #endif
