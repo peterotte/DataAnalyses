@@ -23,5 +23,7 @@ TH1D *hMesonMassCenterVSFiles, *hMesonMassWidthVSFiles;
 TH1D *hDroppedEventsRatio;
 TH1D *hTotalEvents;
 
+TH2D *hScalerVSTDCRatio;
+
 
 #endif

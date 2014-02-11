@@ -98,6 +98,16 @@ void DoFile(int fFileNumber) {
         printf("WARNING: File %d: 1D Dropped Events histogram not found.\n", fFileNumber);
         return;
     }
+    TH1D *hScaler = (TH1D*)file1->Get("TaggerScalerAccum");
+    if( !hScaler ) {
+        printf("WARNING: File %d: 1D TaggerScalerAccum histogram not found.\n", fFileNumber);
+        return;
+    }
+    TH2D *hTime2D = (TH2D*)file1->Get("hTaggerTime");
+    if( !hTime2D ) {
+        printf("WARNING: File %d: 2D hTaggerTime histogram not found.\n", fFileNumber);
+        return;
+    }
 
     if (ProgramDebugMode) printf("INFO: All histograms connected.\n");
     // ***************************************************************
@@ -107,8 +117,8 @@ void DoFile(int fFileNumber) {
     if (histDroppedEvents->GetBinContent(2) > 0) {
         TempValue = histDroppedEvents->GetBinContent(1)/histDroppedEvents->GetBinContent(2);
     }
-    hDroppedEventsRatio->SetBinContent(fFileNumber, TempValue);
-    hTotalEvents->SetBinContent(fFileNumber, histDroppedEvents->GetBinContent(2));
+    hDroppedEventsRatio->SetBinContent(fFileNumber+1, TempValue);
+    hTotalEvents->SetBinContent(fFileNumber+1, histDroppedEvents->GetBinContent(2));
 
 
 
@@ -130,11 +140,11 @@ void DoFile(int fFileNumber) {
         MeanTaggEff = PrevFitTMP->GetParameter(1);
         if (ProgramDebugMode) printf("INFO: Fit result: %f +- %f\n", PrevFitTMP->GetParameter(1), PrevFitTMP->GetParError(1));
 
-        hMesonMassCenterVSFiles->SetBinContent(fFileNumber, PrevFitTMP->GetParameter(1));
-        hMesonMassCenterVSFiles->SetBinError(fFileNumber, PrevFitTMP->GetParError(1));
+        hMesonMassCenterVSFiles->SetBinContent(fFileNumber+1, PrevFitTMP->GetParameter(1));
+        hMesonMassCenterVSFiles->SetBinError(fFileNumber+1, PrevFitTMP->GetParError(1));
 
-        hMesonMassWidthVSFiles->SetBinContent(fFileNumber, PrevFitTMP->GetParameter(2));
-        hMesonMassWidthVSFiles->SetBinError(fFileNumber, PrevFitTMP->GetParError(2));
+        hMesonMassWidthVSFiles->SetBinContent(fFileNumber+1, PrevFitTMP->GetParameter(2));
+        hMesonMassWidthVSFiles->SetBinError(fFileNumber+1, PrevFitTMP->GetParError(2));
 
         RunsMetaInformation.at(fFileNumber).CBEnergyScale = RunsMetaInformation.at(fFileNumber).CBEnergyScale * (MassPion0 / PrevFitTMP->GetParameter(1));
 
@@ -146,11 +156,26 @@ void DoFile(int fFileNumber) {
         printf("ERROR: File %d: Fit did not converge.\n", fFileNumber);
         RunsMetaInformation.at(fFileNumber).CBEnergyScale = 1.0;
     }
-
-
     // ***************************************************************
 
 
+    // ***************************************************************
+    // Scaler / TDC Tests
+    // ***************************************************************
+
+    TH1D *hTime1D = hTime2D->ProjectionY("Time1D",700,950);
+
+    delete gROOT->FindObject("Divide");
+    TH1D* hDiff = (TH1D*)hScaler->Clone("Divide");
+
+    hDiff->Divide(hTime1D);
+    for (int i=0; i< NTaggChs; i++) {
+        hScalerVSTDCRatio->SetBinContent(fFileNumber+1, i+1, hDiff->GetBinContent(i+1));
+        hScalerVSTDCRatio->SetBinError(fFileNumber+1, i+1, hDiff->GetBinError(i+1));
+    }
+
+
+    // ***************************************************************
 
 
 
@@ -171,6 +196,7 @@ void DoFile(int fFileNumber) {
 
 void DoAllFiles() {
     for (int i=0; i<NRunsMetaInformation; i++) {
+//    for (int i=0; i<100; i++) {
         if (RunsMetaInformation.at(i).RunType == 0) {
             DoFile(i);
         }
@@ -193,6 +219,10 @@ int PlotAllMeasurements() {
     hDroppedEventsRatio->Draw();
     c1->cd(4);
     hTotalEvents->Draw();
+
+    TCanvas *c2 = new TCanvas("c2");
+    hScalerVSTDCRatio->Draw("COLZ");
+
     return 0;
 }
 
