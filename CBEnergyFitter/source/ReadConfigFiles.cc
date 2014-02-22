@@ -26,7 +26,7 @@ int NRunsMetaInformation = 0;
 // Read Configuration files
 //************************************************************************
 
-int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
+int ReadRunsInformationConfigurationFile(int fDebugInfo=0) {
     Printf("--------------------------------------");
     Char_t Line[1024];
     Char_t buffer[1024];
@@ -134,6 +134,10 @@ int ReadRunsInformationConfigurationFile(int fBeamtime, int fDebugInfo=0) {
         }
     }
     NRunsMetaInformation = AktElementNr;
+    if (LastFileNumberToAnalyse<0) {
+        LastFileNumberToAnalyse=NRunsMetaInformation-1;
+        Printf("LastFileNumberToAnalyse Set to max: %d\n", LastFileNumberToAnalyse);
+    }
 
     Printf("INFO: RunInfo: Read %d elements.", AktElementNr);
 

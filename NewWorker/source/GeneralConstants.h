@@ -31,6 +31,7 @@ int ScalerBlockLength1 = -1; //For Mk1 DataFormat
 int ScalerBlockLength2 = -1; //For Mk1 DataFormat
 int RawDataFormat = 0; //1 for Mk1 and 2 for Mk2 Format
 Char_t TaggEffNormFile[1024] = ""; //Path plus Filename where to find the TaggEffNorm.root file
+Char_t CBHitsPromptSampleFile[1024] = ""; //Path plus Filename where to find the CBHitsPromptSampleFile.root file with CBHitsPrompt Histogram
 
 //-----------------------------------------------------------------------------
 
@@ -40,6 +41,16 @@ int CutHitsOutOfRange = -1; //If set to 0, no hits will be deleted. if set to -1
 //Correct for Missing Hits in CB
 //if ADC does not match TDC information then skip the complete Block
 int RequireMinHitsCBBlock = 0; //default will not drop any events
+
+//if match TDC information lost its synch then skip the complete Block
+int CBHitsPromptCorrectionActive = 0;
+double CBHitsPromptCorrectionRatioThr = 0.75; //If below this value, the event block will be dropped
+std::vector<int> CBHitsPromptSample(90,1); //for broken TDC check
+
+//To correct for wrong Tagger Scaler Reads
+//if value is !=0, then it it checked
+double AvgSumPerEventBlockCountedByScalers = 0.; //If more than 20% of, the event block will be dropped
+
 
 //For analysis of F
 int RequireBeamHelicityPresent = -1; //default: requires BeamHelicity information present

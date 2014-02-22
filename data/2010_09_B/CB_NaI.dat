@@ -7,6 +7,10 @@ TimeOffsetNS: -11.05
 Energy-Scale:   1.043
 ClusterMinEnergy: 15.
 
+#File to find the broken TDC blocks. Histogram needs to be called "CBHitsPrompt", accum. over 1000*1000 events 
+CBHitsPromptSampleFile: CBPromptTime_Sample.root
+
+
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Configuration of detector elements.
 #          ADC chan.  Low thres. [MeV]  High thres.[MeV]  Pedestal [chan.]  MeV/Chan.  TDC chan.  Low thres. [ns]  High thres.[ns]   Offset [chan.]  ns/Chan.  Position [x,y,z]

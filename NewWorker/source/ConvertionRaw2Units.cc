@@ -25,6 +25,7 @@ int Do_ConstructDetectorHits() {
 
                     //printf("TempResult: %f \n",TempResult);
                     hTaggerChTDC->Fill(TempResult, AktElementNr );
+                    hTaggerChTDC_VS_EventID->Fill(EventBlock.Events.at(i).EventID, AktElementNr );
 
                     TempResult = (-1*RawADCData.Tagger.Elements.at(AktElementNr).TDCOffsetTicks + TempResult)*RawADCData.Tagger.Elements.at(AktElementNr).TDCNSPerTick +
                             RawADCData.Tagger.TimeOffsetNS;
@@ -153,7 +154,8 @@ int Do_ConstructDetectorHits() {
         }
     }
 
-    std::vector<int> CBSectorHits(4,0);
+    std::vector<int> CBSectorHits(4,0); //For broken ADC check
+    std::vector<int> CBHitsPrompt(90,0); //for broken TDC check
 
     //Now delete events, which have no Time or Energy information left after cuts
     int i=0;
@@ -193,15 +195,25 @@ int Do_ConstructDetectorHits() {
                 case 0: //Tagger
                     for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
                         hTaggerTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
+                        if ( TMath::Abs(EventBlock.Events.at(i).HitElements.at(k).Time.at(l)) < 10.) {
+                            hTaggerTimePrompt_VS_EventID->Fill( EventBlock.Events.at(i).EventID, AktElementNr);
+                        }
                     }
                     break;
                 case 1: //CB
                     if (EventBlock.Events.at(i).HitElements.at(k).Energy != NoValuePresent) {
                         hCBChEnergy->Fill( EventBlock.Events.at(i).HitElements.at(k).Energy, AktElementNr );
+                        if (EventBlock.Events.at(i).HitElements.at(k).Energy > 5) {
+                            hCBChEnergy_VS_EventID->Fill( EventBlock.Events.at(i).EventID, AktElementNr);
+                        }
                     }
                     for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
                         hCBHits_VS_EventID->Fill(EventBlock.Events.at(i).EventID, AktElementNr);
                         hCBTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
+                        if (TMath::Abs(EventBlock.Events.at(i).HitElements.at(k).Time.at(l)) < 10. ) {
+                            hCBTimePrompt_VS_EventID->Fill( EventBlock.Events.at(i).EventID, AktElementNr);
+                            CBHitsPrompt.at((int)floor(AktElementNr/8.))++;
+                        }
 
                         CBSectorHits.at((int)floor(AktElementNr/(720./4.)))++;
                     }
@@ -209,6 +221,7 @@ int Do_ConstructDetectorHits() {
                 case 2: //PID
                     if (EventBlock.Events.at(i).HitElements.at(k).Energy != NoValuePresent) {
                         hPIDChEnergy->Fill( EventBlock.Events.at(i).HitElements.at(k).Energy, AktElementNr );
+                        hPIDChEnergy_VS_EventID->Fill(EventBlock.Events.at(i).EventID, AktElementNr);
                     }
                     for (int l=0;l<EventBlock.Events.at(i).HitElements.at(k).Time.size();l++) {
                         hPIDTime->Fill( EventBlock.Events.at(i).HitElements.at(k).Time.at(l), AktElementNr );
@@ -225,6 +238,7 @@ int Do_ConstructDetectorHits() {
     }
 
 
+    //Check for Broken CB ADCs blocks
 //    printf("CBSectorHits: %8d %8d %8d %8d\n",CBSectorHits.at(0), CBSectorHits.at(1), CBSectorHits.at(2), CBSectorHits.at(3));
     for (i=0;i<4;i++) {
         if (CBSectorHits.at(i) < RequireMinHitsCBBlock) {
@@ -233,6 +247,20 @@ int Do_ConstructDetectorHits() {
             printf("WARNING: This EventBlock will be discarded tue to low hits in CB. Section %d has only %d hits.\n", i, CBSectorHits.at(i));
         }
     }
+
+    //Check for broken TDC blocks
+    if (CBHitsPromptCorrectionActive) {
+        //Printf("INFO: Do the CBHitsPromptSampleFile Check.");
+        for (int i=0;i<90;i++) {
+            if (CBHitsPromptSample.at(i) > 20) { //To avoid bins with low statics can throw out everything
+                if ( (double)CBHitsPrompt.at(i) / (double)CBHitsPromptSample.at(i) < CBHitsPromptCorrectionRatioThr ) {
+                    Printf("TDC Block %d is below 75 percent (%d %d %f). This EventBLock will be discarded.", i, CBHitsPrompt.at(i), CBHitsPromptSample.at(i), (double)CBHitsPrompt.at(i) / (double)CBHitsPromptSample.at(i));
+                    DiscardActualEventBlockDueToCBHits = -1;
+                }
+            }
+        }
+    }
+
 
     return 0;
 }

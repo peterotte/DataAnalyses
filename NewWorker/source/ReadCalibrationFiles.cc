@@ -255,6 +255,10 @@ int ReadTaggerConfigurationFile() {
                 RawADCData.Tagger.TimeOffsetNS = SingleFloatToRead;
                 Printf("Info: Tagger TimeOffsetNS: %f", RawADCData.Tagger.TimeOffsetNS);
             }
+            if (!strcmp(Buffer, "AvgSumPerEventBlockCountedByScalers:")) {
+                AvgSumPerEventBlockCountedByScalers = SingleFloatToRead;
+                Printf("Info: Tagger AvgSumPerEventBlockCountedByScalers: %f", AvgSumPerEventBlockCountedByScalers);
+            }
         }
         if (sscanf(Line, "%s %s", Buffer, Buffer2 ) == 2) {
             if (!strcmp(Buffer, "TaggEffFile:")) {
@@ -351,6 +355,7 @@ int ReadCBConfigurationFile() {
     Printf("--------------------------------------");
     Char_t Line[1024];
     Char_t Buffer[1024];
+    Char_t Buffer2[1024];
     Char_t ADCChNr_Str[20];
     int ADCChNr = -1;
     float ADCLowThresholdMEV = -1;
@@ -410,7 +415,35 @@ int ReadCBConfigurationFile() {
                 ClusterMinEnergy = SingleFloatToRead;
                 Printf("Info: CB ClusterMinEnergy: %f", ClusterMinEnergy );
             }
+            if (!strcmp(Buffer, "CBHitsPromptCorrectionRatioThr:")) {
+                CBHitsPromptCorrectionRatioThr = SingleFloatToRead;
+                Printf("Info: CB CBHitsPromptCorrectionRatioThr: %f", CBHitsPromptCorrectionRatioThr );
+            }
         }
+        if (sscanf(Line, "%s %s", Buffer, Buffer2 ) == 2) {
+            if (!strcmp(Buffer, "CBHitsPromptSampleFile:")) {
+                sprintf(Buffer, "%s/%s", InputPathDataDir, Buffer2);
+                strcpy(CBHitsPromptSampleFile, Buffer);
+                Printf("Info: CBHitsPromptSampleFile (to kick broken TDC blocks): %s", CBHitsPromptSampleFile);
+                CBHitsPromptCorrectionActive = -1;
+
+
+                Printf("INFO: Open CBHitsPromptSampleFile file: %s", CBHitsPromptSampleFile);
+                TFile *f1 = new TFile(CBHitsPromptSampleFile);
+                TH1D *h1 = (TH1D*)f1->Get("CBHitsPrompt");
+                if (!h1) {
+                    Printf("ERROR: CBHitsPrompt Spectrum not found.");
+                    CBHitsPromptCorrectionActive = 0;
+                } else {
+                    for (int m=0;m<90; m++) {
+                        CBHitsPromptSample.at(m) = TMath::Nint( h1->GetBinContent(m+1)/100. );
+                    }
+                }
+                f1->Close();
+
+            }
+        }
+
 
 
         //read TimeWalk Parameters

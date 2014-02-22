@@ -13,13 +13,13 @@ int SetParticleMass(TLorentzVector *lv, double fMass) {
 }
 
 //For actuel EventBlock
-int GetExperimentLiveCounter() {
+unsigned int GetExperimentLiveCounter() {
     return EventBlock.ExperimentLiveCounter;
 }
-int GetUngatedLiveCounter() {
+unsigned int GetUngatedLiveCounter() {
     return EventBlock.UngatedLiveCounter;
 }
-int GetTaggerLiveCounter() {
+unsigned int GetTaggerLiveCounter() {
     return EventBlock.TaggerLiveCounter;
 }
 
@@ -61,45 +61,142 @@ int Handle_ScalerCounts(int fNRejectedEvents, int fNTotalEvents) {
     LastScalerReadNCh = EventBlock.Scalers.size();
 
     int i = 0;
+    int NScalerBlocksUsed = EventBlock.BlockID;
+    double TaggerLT = ((double)GetTaggerLiveCounter() / (double)GetUngatedLiveCounter() );
+    double ExpLT = ((double)GetExperimentLiveCounter() / (double)GetUngatedLiveCounter() );
     while (i<EventBlock.Scalers.size()) {
         if (EventBlock.Scalers.at(i).DetectorID == 0) {
             hTaggerScalerAccum->Fill(EventBlock.Scalers.at(i).ElementID, EventBlock.Scalers.at(i).Value);
+            hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, EventBlock.Scalers.at(i).ElementID+1, EventBlock.Scalers.at(i).Value/TaggerLT*ExpLT);
         } else if (EventBlock.Scalers.at(i).DetectorID == 10) {
             hTriggerScalerAccum->Fill(EventBlock.Scalers.at(i).ElementID, EventBlock.Scalers.at(i).Value);
         }
         i++;
     }
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 300, TaggerLT);
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 301, ExpLT);
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 302, GetTaggerLiveCounter());
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 303, GetExperimentLiveCounter());
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 304, GetUngatedLiveCounter());
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 305, fNRejectedEvents);
+    hTaggerScalerAccum_VS_EventID->SetBinContent(NScalerBlocksUsed+1, 306, fNTotalEvents);
 
+    //NScalerBlocksUsed++;
     double CorrectionFactor = (1.-(double)fNRejectedEvents/(double)fNTotalEvents);
     hLiveTimeAccum->Fill(0.5, GetUngatedLiveCounter() * CorrectionFactor); //Ungated
     hLiveTimeAccum->Fill(1.5, GetExperimentLiveCounter() * CorrectionFactor ) ; //CB Gated, corrected by the dropped Events = dead time
     hLiveTimeAccum->Fill(2.5, GetTaggerLiveCounter() * CorrectionFactor ); //Tagger Gated
     hLiveTimeAccum->Fill(3.5, GetUngatedLiveCounter() ); //Ungated, not corrected by Dropped Events
 
-    if (CorrectionFactor <= 1) printf("LiveTime corrected by: %f\n", CorrectionFactor);
+    if (CorrectionFactor < 1.0) printf("LiveTime corrected by: %f\n", CorrectionFactor);
 
     hDroppedEvents->Fill(0.5, fNRejectedEvents);
     hDroppedEvents->Fill(1.5, fNTotalEvents);
 }
 
+double GetAngleBetweenTwoVectors(TPosition vec1, TPosition vec2) {
+    return TMath::ACos(TMath::Cos(vec1.theta)*TMath::Cos(vec2.theta)+TMath::Cos(vec1.phi-vec2.phi)*TMath::Sin(vec1.theta)*TMath::Sin(vec2.theta));
+}
 
 int Do_PhysicsAnalysis () {
     TVector3 MyBoostVector;
 
+    //Check for wrong Tagger Scaler reads START
+    int i = 0;
+    double TaggTotalNScalerHits = 0;
+    while (i<EventBlock.Scalers.size()) {
+        if (EventBlock.Scalers.at(i).DetectorID == 0) { //Tagger
+            TaggTotalNScalerHits += EventBlock.Scalers.at(i).Value;
+        }
+        i++;
+    }
+
+    //printf("INFO: Number of Tagger-Hits registered by Scalers: %f Avg: %f\n",TaggTotalNScalerHits, AvgSumPerEventBlockCountedByScalers);
+    if (AvgSumPerEventBlockCountedByScalers >= 0.1) {
+        if ( (TaggTotalNScalerHits <= (AvgSumPerEventBlockCountedByScalers*0.8) ) || (TaggTotalNScalerHits >= (AvgSumPerEventBlockCountedByScalers*1.2) ) ) {
+            printf("WARNING: Tagger scalers are off by factor %f from average. This event block will be dropped.\n", TaggTotalNScalerHits / AvgSumPerEventBlockCountedByScalers );
+            return 1;
+        }
+    }
+    //Check for wrong Tagger Scaler reads END
+
+    //Check for wrong Trigger Scaler reads START
+    int SomeThingWrong = 0;
+    double TaggerLT = ((double)GetTaggerLiveCounter() / (double)GetUngatedLiveCounter() );
+    double ExpLT = ((double)GetExperimentLiveCounter() / (double)GetUngatedLiveCounter() );
+    if ( (TaggerLT <= 0.2) || (TaggerLT >=1.) ) SomeThingWrong = -1;
+    if ( (ExpLT <= 0.2) || (ExpLT >=1.) ) SomeThingWrong = -1;
+    if (SomeThingWrong) {
+        printf("WARNING: Experiment LT scalers (%f %f) are wrong. This event block will be dropped.\n",  TaggerLT, ExpLT);
+        return 2;
+    }
+    //Check for wrong Trigger Scaler reads END
+
     int NTotalEvents = 0;
     int NRejectedEvents = 0; //Due to wrong MAMI Bitpattern etc.
 
-    int i = 0;
+    i = 0;
     while (i<EventBlock.Events.size()) { //Loop through all events in EventBlock
         TEvent MyEvent;
         MyEvent = EventBlock.Events.at(i);
 
-        ///printf("New Event ID: ??\tTotalN:%d\n", MyEvent.CBClusters.size());
+        //printf("New Event ID: %d\tTotalN:%d\n", MyEvent.EventID, MyEvent.CBClusters.size());
+
+        //Check Angle between all Clusters START
+        int k=0;
+        while (k<MyEvent.CBClusters.size()) {
+            int n=k+1;
+            while (n<MyEvent.CBClusters.size()) {
+                if (TMath::Abs(MyEvent.CBClusters.at(k).Time - MyEvent.CBClusters.at(n).Time) < 20) {
+                    hAngleBetweenClusters->Fill(
+                            GetAngleBetweenTwoVectors(MyEvent.CBClusters.at(k).Position, MyEvent.CBClusters.at(n).Position)*180/TMath::Pi(),
+                            MyEvent.CBClusters.at(k).Energy / MyEvent.CBClusters.at(n).Energy
+                            );
+//                    if (GetAngleBetweenTwoVectors(MyEvent.CBClusters.at(k).Position, MyEvent.CBClusters.at(n).Position)*180/TMath::Pi() < 40.) {
+//                        hEnergyPhoton1VSEnergyPhoton2_Prompt->Fill(MyEvent.CBClusters.at(k).Energy, MyEvent.CBClusters.at(n).Energy);
+//                        hEnergyPhoton1VSEnergyPhoton2_Prompt->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(n).NumberOfCrystals);
+
+/*                        if ((k==0) && (n==1) ){
+                            printf("\n");
+                            for (int o=0;o<MyEvent.CBClusters.size();o++) {
+                                printf("EventID. %d NSize: %d\t %d   %d  %d    %f  %f\n",
+                                    MyEvent.EventID, MyEvent.CBClusters.size(), MyEvent.CBClusters.at(o).CentralElementID,
+                                       MyEvent.CBClusters.at(o).NumberOfCrystals, MyEvent.CBClusters.at(o).ClusterID,
+                                       MyEvent.CBClusters.at(o).Time, MyEvent.CBClusters.at(o).Energy );
+                            }
+                            int kk=0;
+                            while (kk < EventBlock.Events.at(i).HitElements.size()) { //Goes through all hits in event
+                                int AktElementNr = EventBlock.Events.at(i).HitElements.at(kk).ElementID;
+                                int AktDetectorNr = EventBlock.Events.at(i).HitElements.at(kk).DetectorID;
+
+                                if (AktDetectorNr == 1) { //For CB only
+                                    printf("%d: %3d %3.1f\t", AktElementNr, EventBlock.Events.at(i).HitElements.at(kk).ParticipatingClusterID, EventBlock.Events.at(i).HitElements.at(kk).Energy);
+                                }
+                                kk++;
+                            }
+
+                        }
+*/    /*                    printf("EventID. %d NSize: %d\tCentral Crystal: %d %d   %d %d   Multi: %d %d   t: %f %f  E: %f %f\n",
+                                 MyEvent.EventID, MyEvent.CBClusters.size(),
+                                 k, n,
+                                 MyEvent.CBClusters.at(k).CentralElementID, MyEvent.CBClusters.at(n).CentralElementID,
+                               MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(n).NumberOfCrystals,
+                                 MyEvent.CBClusters.at(k).Time, MyEvent.CBClusters.at(n).Time,
+                                MyEvent.CBClusters.at(k).Energy, MyEvent.CBClusters.at(n).Energy ) ;
+      */
+//                  }
+                }
+
+                n++;
+            }
+            k++;
+        }
+        //Check Angle between all clusters END
 
         //** Start hCBEnergySumAllEvents
         double CBEnergySum = 0;
 
-        int k=0;
+        k=0;
         while (k<MyEvent.CBClusters.size()){
             CBEnergySum = CBEnergySum + MyEvent.CBClusters.at(k).Energy;
             int TempPartID = 22;
@@ -108,25 +205,36 @@ int Do_PhysicsAnalysis () {
               ///     MyEvent.CBClusters.at(k).Position.r, MyEvent.CBClusters.at(k).Energy );
 
             if (MyEvent.CBClusters.at(k).IsCharged) {
+                hCBClusterMulti_VS_Energy_PIDCharged->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(k).Energy);
+            } else {
+                hCBClusterMulti_VS_Energy_PIDUncharged->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(k).Energy);
+            }
+
+
+//            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
+            if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
                 MyEvent.CBClusters.erase(MyEvent.CBClusters.begin() + k);
             } else {
                 k++;
             }
+
         }
         hCBEnergySumAllEvents->Fill(CBEnergySum);
 
         //** End hCBEnergySumAllEvents
 
- 		//Do not analyse Events with Error Blocks
+        //Do not analyse Events with Error Blocks if Mk2 DataFormat
         NTotalEvents++;
-/*        if (MyEvent.NErrorBlocks > 0) {
-            //printf("WARNING: EventID: %d has NErrorBlocks: %d\n", MyEvent.EventID, MyEvent.NErrorBlocks);
-            NRejectedEvents++;
-            i++;
-            continue;
-            printf("This SHOULD NEVER HAPPEN!\n");
-        };
-*/
+        if (RawDataFormat == 2) {
+            if (MyEvent.NErrorBlocks > 0) {
+                //printf("WARNING: EventID: %d has NErrorBlocks: %d\n", MyEvent.EventID, MyEvent.NErrorBlocks);
+                NRejectedEvents++;
+                i++;
+                continue;
+                printf("This SHOULD NEVER HAPPEN!\n");
+            }
+        }
+
         std::vector<TLorentzVector> IncomingPhotons;
         std::vector<double> IncomingPhotonsTime;
         std::vector<Int_t> IncomingPhotonsTaggerCh;
@@ -181,7 +289,8 @@ int Do_PhysicsAnalysis () {
 
         hNPhotons->Fill(MyEvent.CBClusters.size());
 
-        if (MyEvent.CBClusters.size() > 1) {
+        if (MyEvent.CBClusters.size() > 1) { //All Events with any number of Photons
+        //if (MyEvent.CBClusters.size() == 2) { //Only Events with two Photons
             k=0;
             while (k<MyEvent.CBClusters.size()){
                 int l=k+1;
@@ -208,6 +317,7 @@ int Do_PhysicsAnalysis () {
                         v2.SetE(MyEvent.CBClusters.at(l).Energy);
 
                         vSum = v1 + v2;
+                        TLorentzVector vSumBeforeFit = vSum;
 
                      //   printf("C1: %i (%f)\t C2: %i(%f) =\t%f\n", MyEvent.CBClusters.at(0).CentralElementID, MyEvent.CBClusters.at(0).Energy,
                        //        MyEvent.CBClusters.at(1).CentralElementID, MyEvent.CBClusters.at(1).Energy, vSum.M());
@@ -229,6 +339,7 @@ int Do_PhysicsAnalysis () {
                         //if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;} //No longer necessary because faulty files do not get used for F later
 
 
+//                        if ( TMath::Abs(MassPion0-vSum.M()) < 200 ) { //200 for tests to see the ful Inv Mass Distribution
                         if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) {
                             //******** Kin Fit Start ******
 
@@ -282,9 +393,20 @@ int Do_PhysicsAnalysis () {
                                 MyBoostVector = -1. * (LVTarget + IncomingPhotons.at(g)).BoostVector();
                                 P4MesonCM = vSum;
                                 P4MesonCM.Boost(MyBoostVector);
+                                double MesonTaggTimeDiff = MesonTime-IncomingPhotonsTime.at(g);
+
+                                //Fill Debug histogram start
+                                if ( (MesonTaggTimeDiff >= -12.) && (MesonTaggTimeDiff <= 8.) ) {
+                                    hMesonInvMassVSMissingMass_Prompt->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                }
+                                if ( ( (MesonTaggTimeDiff >= -130.) && (MesonTaggTimeDiff <= -30.) ) || ( (MesonTaggTimeDiff >= 30.) && (MesonTaggTimeDiff <= 130.) ) ) {
+                                    hMesonInvMassVSMissingMass_Bg->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                }
+                                //FIll Debug histogram end
+
                                 if ( TMath::Abs(P4Missing.M()-MassProton) < 50 ) {
 
-                                    double MesonTaggTimeDiff = MesonTime-IncomingPhotonsTime.at(g);
+                                    hMesonInvariantMassAfterCuts->Fill(vSumBeforeFit.M());
 
                                     //Signal
                                     if ( (MesonTaggTimeDiff >= -12.) && (MesonTaggTimeDiff <= 8.) ) {
@@ -294,6 +416,14 @@ int Do_PhysicsAnalysis () {
                                             hMissingMassPrompt.at(IncomingPhotonsTaggerCh.at(g))->Fill(P4Missing.M(), P4MesonCM.Theta()*180/TMath::Pi());
                                         #endif
                                         hMissingMassVsMesonThetaPrompt->Fill(P4Missing.M(), P4MesonCM.Theta()*180/TMath::Pi());
+                                        hCBClusterMulti_VS_Energy_Photon_Prompt->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(k).Energy);
+                                        hCBClusterMulti_VS_Energy_Photon_Prompt->Fill(MyEvent.CBClusters.at(l).NumberOfCrystals, MyEvent.CBClusters.at(l).Energy);
+
+                                        hAngleBetweenClusters->Fill(
+                                                    GetAngleBetweenTwoVectors(MyEvent.CBClusters.at(k).Position, MyEvent.CBClusters.at(l).Position)*180/TMath::Pi(),
+                                                    0
+                                                    );
+                                        hEnergyPhoton1VSEnergyPhoton2_Prompt->Fill(MyEvent.CBClusters.at(k).Energy, MyEvent.CBClusters.at(l).Energy);
                                         ///MyEvent.HelicityBit
                                         ///
 
@@ -354,6 +484,9 @@ int Do_PhysicsAnalysis () {
                                             hMissingMassBg.at(IncomingPhotonsTaggerCh.at(g))->Fill(P4Missing.M(), P4MesonCM.Theta()*180/TMath::Pi());
                                         #endif
                                         hMissingMassVsMesonThetaBg->Fill(P4Missing.M(), P4MesonCM.Theta()*180/TMath::Pi());
+                                        hCBClusterMulti_VS_Energy_Photon_Bg->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(k).Energy);
+                                        hCBClusterMulti_VS_Energy_Photon_Bg->Fill(MyEvent.CBClusters.at(l).NumberOfCrystals, MyEvent.CBClusters.at(l).Energy);
+                                        hEnergyPhoton1VSEnergyPhoton2_Bg->Fill(MyEvent.CBClusters.at(k).Energy, MyEvent.CBClusters.at(l).Energy);
 
                                         //Calculation for F
                                         //Difference in \phi between Target and pi0
@@ -418,7 +551,7 @@ int Do_PhysicsAnalysis () {
     }
 
     if (NRejectedEvents>0) {
-        printf("Dropped Events in Physics Analysis %d from %d\n", NRejectedEvents, NTotalEvents);
+        printf("Dropped Events in Physics Analysis %d from %d: ", NRejectedEvents, NTotalEvents);
     }
 
     Handle_ScalerCounts(NRejectedEvents, NTotalEvents);
@@ -438,6 +571,13 @@ int Do_PhysicsAnalysis () {
     //T
     hMissingMassCombinedSignalTP->Add(hMissingMassCombinedPromptTP, hMissingMassCombinedBgTP, 1, -0.1);
     hMissingMassCombinedSignalTM->Add(hMissingMassCombinedPromptTM, hMissingMassCombinedBgTM, 1, -0.1);
+
+    //MissingMass VS InvMass
+    hMesonInvMassVSMissingMass_Signal->Add(hMesonInvMassVSMissingMass_Prompt, hMesonInvMassVSMissingMass_Bg, 1, -0.1);
+    //Cluster E VS Cluster Multi
+    hCBClusterMulti_VS_Energy_Photon_Signal->Add(hCBClusterMulti_VS_Energy_Photon_Prompt, hCBClusterMulti_VS_Energy_Photon_Bg, 1, -0.1);
+    //More
+    hEnergyPhoton1VSEnergyPhoton2_Signal->Add(hEnergyPhoton1VSEnergyPhoton2_Prompt, hEnergyPhoton1VSEnergyPhoton2_Bg, 1, -0.1);
 
     return 0;
 }

@@ -12,6 +12,9 @@ hadd -f output/sumButM.root ../../step0/output/sumButC.root ../../step0/output/s
 #hadd -f output/sumButP.root ../../step0/output/sumButE.root ../../step0/output/sumButF.root
 #hadd -f output/sumButM.root ../../step0/output/sumButG.root ../../step0/output/sumButH.root
 
+#DEBUG: Jan 2011 beamtimes with carbon
+#hadd -f output/sumButP.root ../../step0/output/sumButI.root
+#hadd -f output/sumButM.root ../../step0/output/sumButJ.root
 
 root -l -b -q CombineButPMScaled.C
 

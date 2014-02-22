@@ -12,6 +12,7 @@ int ProcessDataFileMk1() {
     // unsigned short int *ptrs=(unsigned short int*)buffer;//caste Buffer zum short int
 
      int AnzahlUngeschlossenerBuffer = 0;
+     int NEventBlocks = 0;
      int AktEventNr = -1;
      int AktEventNrBefore = -1; //The EventNr of the Event before
      //int AktEventLength = -1;
@@ -248,8 +249,17 @@ int ProcessDataFileMk1() {
 
                      //if a scaler block is now included in the event data block, then analyse the data now
                      if (EventBlock.Scalers.size() > 0) {
+                         //Correct for wrong Blocks at beginning of a file START
+                         if ( (NEventBlocks==0) || (NEventBlocks==1) ) {
+                             DiscardActualEventBlock = -1; //Because first Datablock is always critical, Scalers might not have been reset before. 2nd also away to awoid a scaler read in a buffer from a file before
+                             Printf("WARNING: DISCARD first and second event block.");
+                         }
+                         //Correct for wrong Blocks at beginning of a file END
 
-                         if (DiscardActualEventBlock == 0) {
+                        EventBlock.BlockID = NEventBlocks;
+                        NEventBlocks++;
+
+                        if (DiscardActualEventBlock == 0) {
                              if (!ProgramOnlyFileCheckMode) {
                                  //TThread::Lock();
                                  Do_ConstructDetectorHits(); //Use Raw data in EventBlock and apply the calibration to it

@@ -60,15 +60,26 @@ void sigfunc(int sig) {
 int SaveSpectraAfterToDisc() {
     Char_t TempChar[1024];
     printf("INFO: Started saving ROOT file.\n");
-    strcpy(TempChar, OutputDirectory);
-    strcat(TempChar, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
-    strcat(TempChar, ".root");
+    sprintf(TempChar, "%s/%d.root", OutputDirectory, IndexRunMetaInfomation);
     printf("INFO: Output to: %s\n",TempChar);
 
     TFile *f = new TFile(TempChar, "RECREATE"); //Create and overwrite if file exists
-    /*hCBHits_VS_EventID->Write();
+    hTaggerScalerAccum_VS_EventID->Write();
+    hCBADCHits_VS_EventID->Write();
+    hCBTDCHits_VS_EventID->Write();
+    hCBHits_VS_EventID->Write();
+    hTaggerChTDC_VS_EventID->Write();
+    hCBTimePrompt_VS_EventID->Write();
+    hTaggerTimePrompt_VS_EventID->Write();
+    hCBChEnergy_VS_EventID->Write();
+    hPIDChEnergy_VS_EventID->Write();
+    hCBHitsPrompt_VS_EventID->Write();
+    hCBEnergySum_VS_EventID->Write();
     hMesonPhi_VS_EventID->Write();
-    hMesonThetaLab_VS_EventID->Write();*/
+    hMesonThetaLab_VS_EventID->Write();
+
+    hPIDChADC->Write();
+
     hMesonInvariantMass->Write();
     hCBEnergySum->Write();
     hCBEnergySumTP->Write();
@@ -103,30 +114,62 @@ int SaveSpectraAfterToDisc() {
     */
     if (ProgramBatchMode) {
         printf("INFO: Started saving histograms.\n");
-        sprintf(TempChar, "%s/%s_CBHits.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        sprintf(TempChar, "%s/%d_CBHits.png", OutputDirectory, IndexRunMetaInfomation); //RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str()
         printf("INFO: Output to: %s\n",TempChar);
         TCanvas *c = new TCanvas("c");
         hCBHits_VS_EventID->Draw("COLZ");
         c->SaveAs(TempChar);
 
         hMesonPhi_VS_EventID->Draw("COLZ");
-        sprintf(TempChar, "%s/%s_MesonPhi.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        sprintf(TempChar, "%s/%d_MesonPhi.png", OutputDirectory, IndexRunMetaInfomation);
         c->SaveAs(TempChar);
 
         hMesonThetaLab_VS_EventID->Draw("COLZ");
-        sprintf(TempChar, "%s/%s_MesonTheta.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        sprintf(TempChar, "%s/%d_MesonTheta.png", OutputDirectory, IndexRunMetaInfomation);
         c->SaveAs(TempChar);
 
         hMissingMassCombinedSignalLTCorrected->Draw("COLZ");
-        sprintf(TempChar, "%s/%s_MissMass.png", OutputDirectory, RunsMetaInformation.at(IndexRunMetaInfomation).FileName.c_str());
+        sprintf(TempChar, "%s/%d_MissMass.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        if (RawDataFormat == 1) { hTaggerScalerAccum_VS_EventID->SetAxisRange(0,200,"X"); }
+        hTaggerScalerAccum_VS_EventID->Draw("COLZ");
+        if (RawDataFormat == 1) { hTaggerScalerAccum_VS_EventID->SetAxisRange(0,200,"X"); }
+        sprintf(TempChar, "%s/%d_TaggScaler.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hTaggerChTDC_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_TaggTDC.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hCBTimePrompt_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_CBTimePrompt.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hTaggerTimePrompt_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_TaggTimePrompt.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hCBChEnergy_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_CbEnergy.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hPIDChEnergy_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_PIDEnergy.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hCBHitsPrompt_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_CBHitsPrompt.png", OutputDirectory, IndexRunMetaInfomation);
+        c->SaveAs(TempChar);
+
+        hCBEnergySum_VS_EventID->Draw("COLZ");
+        sprintf(TempChar, "%s/%d_CBEnergySum.png", OutputDirectory, IndexRunMetaInfomation );
         c->SaveAs(TempChar);
 
 
         c->Close();
         delete c;
     }
-    /*
-    */
 }
 
 

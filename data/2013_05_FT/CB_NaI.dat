@@ -3,6 +3,13 @@
 Energy-Scale:  1.08415
 ClusterMinEnergy: 15.
 
+#File to find the broken TDC blocks. Histogram needs to be called "CBHitsPrompt", accum. over 50*1000 events  (because every 1k events a scaler read)
+# this histogram must have 90 bins
+CBHitsPromptCorrectionRatioThr: 0.5
+CBHitsPromptSampleFile: CBPromptTime_Sample.root
+
+
+
 # Calibration factors for each crystal...one line for each crystal
 # Can optionally enter TDC-Time onfo...extra 5 parameters per line
 # low, high are energy cuts, ped is the pedestal, MeV/chan conversion gain

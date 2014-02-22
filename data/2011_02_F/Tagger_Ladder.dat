@@ -3,6 +3,11 @@
 TimeOffsetNS:  175.9
 TaggEffFile:   TaggEffNorm.root
 
+#To correct for wrong Tagger Scaler reads
+# if mor than 20% of this value, the block will be dropped
+AvgSumPerEventBlockCountedByScalers: 1854140361.000000
+
+
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Ladder element definitions.
 #          ADC chan.  Low thres. [MeV]  High thres.[MeV]  Pedestal [chan.]  MeV/Chan.  TDC chan.  Low thres. [ns]  High thres.[ns]   Offset [chan.]  ns/Chan.  Position [x,y,z]  Central energy  Energy Overlap  Scaler chan.

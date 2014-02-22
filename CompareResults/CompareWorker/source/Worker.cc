@@ -521,26 +521,28 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
 
     for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesPauline; t++) {
         if (fAsymToAnalyse) {
-            //Plot Asymmetry
-            HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF );
-            HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError );
             //PlotAsymmetry * DSG
             if (fMultiplyDSG) {
                 HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF *
                                            DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
                 HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError *
                                          DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF );
+                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError );
             }
         } else {
-            //Plot Asymmetry
-            HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT );
-            HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError );
             //PlotAsymmetry * DSG
             if (fMultiplyDSG) {
                 HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT *
                                            DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
                 HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError *
                                          DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT );
+                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError );
             }
         }
     }
@@ -551,26 +553,28 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
 
     for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesSven; t++) {
         if (fAsymToAnalyse) {
-            //Plot Asymmetry
-            HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF /
-                                    DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
-            HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError /
-                                    DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             //Plot Asymmetry * DSG
             if (fMultiplyDSG) {
                 HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF );
                 HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError );
+            } else {
+                //Plot Asymmetry
+                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF /
+                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
+                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError /
+                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             }
         } else {
-            //Plot Asymmetry
-            HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT /
-                                    DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
-            HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError /
-                                    DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             //Plot Asymmetry * DSG
             if (fMultiplyDSG) {
                 HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT );
                 HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError );
+            } else {
+                //Plot Asymmetry
+                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT /
+                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
+                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError /
+                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
             }
         }
     }
@@ -581,26 +585,28 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
 
     for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesPeter; t++) {
         if (fAsymToAnalyse) {
-            //Plot Asymmetry
-            HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF );
-            HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError );
             //Plot Asymmetry * DSG
             if (fMultiplyDSG) {
                 HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF *
                                          DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
                 HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError *
                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF );
+                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError );
             }
         } else {
-            //Plot Asymmetry
-            HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT );
-            HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError );
             //Plot Asymmetry * DSG
             if (fMultiplyDSG) {
                 HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT *
                                          DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
                 HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError *
                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT );
+                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError );
             }
         }
     }
@@ -715,8 +721,8 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
     //************************************************************************
 
     if (fDrawGraphs) {
-        HistSven->Draw("");
-        HistPeter->Draw("same");
+        HistPeter->Draw("");
+        HistSven->Draw("same");
         HistPauline->Draw("same");
     }
 }
@@ -740,23 +746,33 @@ int main(int argc, char **argv) {
     int DoNotDrawSven = 0;
     int DoNotDrawPeter = 0;
     int DoNotDrawPauline = 0;
+    int fMultiplyDSG = -1;
+    int ActualSetupNumber = 0;
     for (i=1; i< argc; i++) {
         if (strncmp("--", argv[i], 1)) {
             strcpy(tempStr, argv[i]);
             fSelectedAsym = strtol(tempStr, (char **)NULL, 10);
-            switch (fSelectedAsym) {
-            case 0: Printf("INFO: Selected Asym T\n");
-                break;
-            case 1: Printf("INFO: Selected Asym F\n");
-                break;
-            default: Printf("INFO: Selected Asym T\n");
-                fSelectedAsym = 0;
-                break;
+            if (ActualSetupNumber==0) {
+                switch (fSelectedAsym) {
+                case 0: Printf("INFO: Selected Asym T\n");
+                    break;
+                case 1: Printf("INFO: Selected Asym F\n");
+                    break;
+                default: Printf("INFO: Selected Asym T\n");
+                    fSelectedAsym = 0;
+                    break;
+                }
+                ActualSetupNumber++;
+            } else if (ActualSetupNumber==1) {
+                ActualSetupNumber++;
+                TaggerChToLookat = fSelectedAsym;
+                Printf("TaggerChToLookat: %d\n", TaggerChToLookat);
             }
         } else {
             if (!strcmp("-Sven", argv[i])) DoNotDrawSven = -1;
             if (!strcmp("-Peter", argv[i])) DoNotDrawPeter = -1;
             if (!strcmp("-Pauline", argv[i])) DoNotDrawPauline = -1;
+            if (!strcmp("-Asymmetry", argv[i])) fMultiplyDSG = 0;
         }
     }
 
@@ -793,7 +809,7 @@ int main(int argc, char **argv) {
     NumberOfSkippedChannels_Pauline=0;
 
     for (i=0; i<257; i++) {
-        ProcessTaggCh(i, 0, fSelectedAsym, -1); //int fTaggCh, int fDrawGraphs, int fAsymToAnalyse (0=T, 1=F)
+        ProcessTaggCh(i, 0, fSelectedAsym, fMultiplyDSG); //int fTaggCh, int fDrawGraphs, int fAsymToAnalyse (0=T, 1=F), Plot Asymmetry or A*DSG
     }
     printf("Skipped Histos: %d\t%d\t%d\n", NumberOfSkippedChannels_Sven, NumberOfSkippedChannels_Peter, NumberOfSkippedChannels_Pauline);
     //PrintDataInformation(100);
@@ -851,7 +867,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    //ProcessTaggCh(125, -1, fSelectedAsym, -1);
+    if (TaggerChToLookat>=0) ProcessTaggCh(TaggerChToLookat, -1, fSelectedAsym, 0);
 
 
     theApp->SetPrompt("NewCompare %d: ");
