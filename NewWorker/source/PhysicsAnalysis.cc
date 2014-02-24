@@ -227,6 +227,7 @@ int Do_PhysicsAnalysis () {
         NTotalEvents++;
         if (RawDataFormat == 2) {
             if (MyEvent.NErrorBlocks > 0) {
+                hCBEnergySumBadEvents->Fill(CBEnergySum);
                 //printf("WARNING: EventID: %d has NErrorBlocks: %d\n", MyEvent.EventID, MyEvent.NErrorBlocks);
                 NRejectedEvents++;
                 i++;
@@ -409,7 +410,7 @@ int Do_PhysicsAnalysis () {
                                     hMesonInvariantMassAfterCuts->Fill(vSumBeforeFit.M());
 
                                     //Signal
-                                    if ( (MesonTaggTimeDiff >= -12.) && (MesonTaggTimeDiff <= 8.) ) {
+                                    if ( (MesonTaggTimeDiff >= -10.) && (MesonTaggTimeDiff <= 10.) ) {
                                         hTimeMesonTagger->Fill(MesonTaggTimeDiff);
 
                                         #ifdef DO_hMissingMassPrompt

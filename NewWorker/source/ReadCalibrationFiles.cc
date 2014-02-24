@@ -373,6 +373,8 @@ int ReadCBConfigurationFile() {
     float TDCTimeWalkP1 = -1;
     float TDCTimeWalkP2 = -1;
     float TDCTimeWalkP3 = -1;
+    float TDCTimeWalkP4 = -1;
+    float TDCTimeWalkP5 = -1;
     float Position0 = -1;
     float Position1 = -1;
     float Position2 = -1;
@@ -446,12 +448,22 @@ int ReadCBConfigurationFile() {
 
 
 
-        //read TimeWalk Parameters
-        if (sscanf(Line, "%s %d %f %f %f %f ", Buffer, &TDCTimeWalkCh, &TDCTimeWalkP0, &TDCTimeWalkP1, &TDCTimeWalkP2, &TDCTimeWalkP3 ) == 6) {
+        //read TimeWalk Parameters, 6 parameter formula from Sven
+        if (sscanf(Line, "%s %d %f %f %f %f %f %f ", Buffer, &TDCTimeWalkCh, &TDCTimeWalkP0, &TDCTimeWalkP1, &TDCTimeWalkP2, &TDCTimeWalkP3, &TDCTimeWalkP4, &TDCTimeWalkP5 ) == 8) {
             if (!strcmp(Buffer, "TimeWalk:")) {
-                //Printf("Info: CB TimeWalk Read, ch %d, paras: %f %f %f %f", TDCTimeWalkCh, TDCTimeWalkP0, TDCTimeWalkP1, TDCTimeWalkP2, TDCTimeWalkP3);
-                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.RiseTime = TDCTimeWalkP0;
-                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Threshold = TDCTimeWalkP1;
+                //Printf("Info: CB TimeWalk Read, 6Paras, ch %d, paras: %f %f %f %f", TDCTimeWalkCh, TDCTimeWalkP0, TDCTimeWalkP1, TDCTimeWalkP2, TDCTimeWalkP3, &TDCTimeWalkP4, &TDCTimeWalkP5);
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Offset = TDCTimeWalkP0;
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Scaling = TDCTimeWalkP1;
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Power = TDCTimeWalkP2;
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Shift = NoValuePresent;
+            }
+        }
+        //read TimeWalk Parameters, 4 parameter formula from Sergej
+        else if (sscanf(Line, "%s %d %f %f %f %f ", Buffer, &TDCTimeWalkCh, &TDCTimeWalkP0, &TDCTimeWalkP1, &TDCTimeWalkP2, &TDCTimeWalkP3 ) == 6) {
+            if (!strcmp(Buffer, "TimeWalk:")) {
+                //Printf("Info: CB TimeWalk Read, 4Paras, ch %d, paras: %f %f %f %f", TDCTimeWalkCh, TDCTimeWalkP0, TDCTimeWalkP1, TDCTimeWalkP2, TDCTimeWalkP3);
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Offset = TDCTimeWalkP0;
+                RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Scaling = TDCTimeWalkP1;
                 RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Shift = TDCTimeWalkP2;
                 RawADCData.CB.Elements.at(TDCTimeWalkCh).TimeWalkParameter.Power = TDCTimeWalkP3;
             }

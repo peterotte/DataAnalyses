@@ -78,11 +78,18 @@ int Do_ConstructDetectorHits() {
                             RawADCData.CB.TimeOffsetNS;;
 
                     //Now Timewalk correction
-                    //formula: t_corr(t,E) = t- RiseTime + (Threshold / (E+Shift)^Power)
-                    double TempTDCResultCorrected = TempResult - (  RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.RiseTime +
-                                                                    RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Threshold/
-                                                                    TMath::Power(TempEnergy + RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Shift,
-                                                                                 RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Power) );
+                    //formula: t_corr(t,E) = t - ( Offset + Scaling*E^Power )              used by Sven
+                    //formula: t_corr(t,E) = t - ( Offset + Scaling/(E+fShift)^Power))     used by Sergej
+                    double TempTDCResultCorrected = TempResult;
+                    if (RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Shift == NoValuePresent) { //Sven's method
+                        TempTDCResultCorrected = TempResult - (  RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Offset +
+                                                                 RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Scaling*
+                                                                 TMath::Power(TempEnergy, RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Power) );
+                    } else { //Sergej's method
+                        TempTDCResultCorrected = TempResult - (  RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Offset +
+                                                                 RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Scaling/
+                                                                 TMath::Power(TempEnergy+RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Shift, RawADCData.CB.Elements.at(AktElementNr).TimeWalkParameter.Power) );
+                    }
 
                     //Do Time Cuts
                     int TempFill = -1;
@@ -214,6 +221,9 @@ int Do_ConstructDetectorHits() {
                             hCBTimePrompt_VS_EventID->Fill( EventBlock.Events.at(i).EventID, AktElementNr);
                             CBHitsPrompt.at((int)floor(AktElementNr/8.))++;
                         }
+                        #ifdef DO_CBTimeWalkCalibration
+                        hCBTimeWalkCalibration->Fill(AktElementNr, EventBlock.Events.at(i).HitElements.at(k).Time.at(l), EventBlock.Events.at(i).HitElements.at(k).Energy);
+                        #endif
 
                         CBSectorHits.at((int)floor(AktElementNr/(720./4.)))++;
                     }
@@ -250,6 +260,7 @@ int Do_ConstructDetectorHits() {
 
     //Check for broken TDC blocks
     if (CBHitsPromptCorrectionActive) {
+    //if (1==9) { //To disable this feature for calibration purpose
         //Printf("INFO: Do the CBHitsPromptSampleFile Check.");
         for (int i=0;i<90;i++) {
             if (CBHitsPromptSample.at(i) > 20) { //To avoid bins with low statics can throw out everything

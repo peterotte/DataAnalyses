@@ -1,4 +1,4 @@
-TimeOffsetNS: -11.05
+TimeOffsetNS: 0.24
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #Global (all NaI elements) scaling parameter for energy correction
@@ -8,6 +8,13 @@ Energy-Scale:   1.043
 ClusterMinEnergy: 15.
 
 #File to find the broken TDC blocks. Histogram needs to be called "CBHitsPrompt", accum. over 1000*1000 events 
+# Step to generate this file
+# 1. analyse a file with NewWorker FileNumber -s -n
+# 2. open the generated root file
+# 3. plot and check  the TH2D CBHitsPrompt_VS_EventID
+# 4. Do ProjectionY, Name: CBHitsPrompt, from 200 to 1200 (eg)
+# 5. Rebinn this new Histo to 90 bins
+# 6. Save As
 CBHitsPromptSampleFile: CBPromptTime_Sample.root
 
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

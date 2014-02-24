@@ -12,10 +12,10 @@ union StoredInfo { //Used for the 32bit structure in the file, used for reading 
 //--------------------------------------------------------------------------------------------
 
 typedef struct {
-    double RiseTime;
-    double Threshold;
-    double Shift;
+    double Offset;
+    double Scaling;
     double Power;
+    double Shift;
 } TTimeWalkParameter;
 
 typedef struct {

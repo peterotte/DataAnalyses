@@ -7,7 +7,8 @@
 //#d efine DO_hMissingMassPrompt 1
 //#d efine DO_CBADC3Sums 1
 // Do ADC_Overview, Scaler_Overview, ErrorBlocks
-//#d efine DO_ExtendedRawDataChecks 1
+#define DO_ExtendedRawDataChecks 1
+#define DO_CBTimeWalkCalibration
 
 
 
@@ -158,6 +159,9 @@ TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts; //Number o
 #ifdef DO_CBADC3Sums
     TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 #endif
+#ifdef DO_CBTimeWalkCalibration
+    TH3D *hCBTimeWalkCalibration;
+#endif
 TH2D *hCBChADC, *hPIDChADC; //Raw ADC information is put here
 TH2D *hPIDChADCCutTDCRequired; //RawADC information, but only, if TDC hit was present
 TH2D *hCBChEnergy, *hPIDChEnergy; //Calibrated ADC information is put here
@@ -183,7 +187,7 @@ TH1D *hMesonInvariantMassAfterCuts;
 TH2D *hMesonInvMassVSMissingMass_Prompt, *hMesonInvMassVSMissingMass_Bg, *hMesonInvMassVSMissingMass_Signal;
 TH1D *hTimeMesonTagger;
 TH1D *hNPhotons;
-TH1D *hCBEnergySum, *hCBEnergySumAllEvents; //W/O and with Dropped Events
+TH1D *hCBEnergySum, *hCBEnergySumAllEvents, *hCBEnergySumBadEvents; //W/O and with Dropped Events
 TH1D *hCBEnergySumTP, *hCBEnergySumTM, *hCBEnergySumFP, *hCBEnergySumFM; //CB EnergySum for T and F for + and -
 TH2D *hCBEnergySum_VS_EventID;
 TH1D *hCB2GammaDeltaTime;
@@ -236,7 +240,8 @@ int InitCalibHistograms() {
         hADCOverview = new TH1D("hADCOverview","hADCOverview",66000,0,66000);
         hAllScalerAccum = new TH1D("AllScalerAccum", "AllScalerAccum", 100000, 0, 100000);
         //Error checks
-        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks",   2000, 0, 2000000, 1000, 0, 1000); //Good range for Sep 2010
+//        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks",   2000, 0, 2000000, 1000, 0, 1000); //Good range for Sep 2010
+        hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks",   2000, 0, 2000000, 2000, 30000, 50000); //Good range for Feb 2014
     //    hErrorBlocks = new TH2D("hErrorBlocks", "hErrorBlocks", 200, 0, 200000, 20000, 30000, 50000); //Good range for May 2013
     #endif
     hDroppedEvents = new TH1D("hDroppedEvents", "hDroppedEvents", 2, 0, 2);
@@ -288,6 +293,9 @@ int InitCalibHistograms() {
     gDirectory->cd("CB");
     hCBChTDC = new TH2D("hCBChTDC", "hCBChTDC", 200, -10000, 10000, NCBElements, 0, NCBElements); //Uncalibrated TDC
     hCBTime = new TH2D("hCBTime", "hCBTime", 2000, -1000, 1000, NCBElements, 0, NCBElements);  //Calibrated Time
+    #ifdef DO_CBTimeWalkCalibration
+    hCBTimeWalkCalibration = new TH3D("CBTimeWalkCalibration", "CBTimeWalkCalibration", NCBElements, 0, NCBElements, 100, -50, 50, 100, 0, 300); hCBTimeWalkCalibration->Sumw2();
+    #endif
     hCBTimePrompt_VS_EventID = new TH2D("CBPromptTime_VS_EventID", "CBPromptTime_VS_EventID", 2000, 0, 2000000, NCBElements, 0, NCBElements);
     hCBChADC = new TH2D("hCBChADC", "hCBChADC", 1000, -100, 10000, NCBElements, 0, NCBElements);//Raw ADC information
     hCBChEnergy = new TH2D("hCBChEnergy", "hCBChEnergy", 2000, -10, 1000, NCBElements, 0, NCBElements); //Calibrated ADC information
@@ -336,12 +344,13 @@ int InitCalibHistograms() {
     hMesonInvMassVSMissingMass_Signal = new TH2D("MesonInvMassVSMissingMass_Signal", "MesonInvMassVSMissingMass_Signal", 250, 0, 250, 600, 0, 1200); hMesonInvMassVSMissingMass_Signal->Sumw2();
     hTimeMesonTagger = new TH1D("hTimeMesonTagger", "hTimeMesonTagger", 400, -200, 200);
     hNPhotons = new TH1D("NPhotons", "NPhotons", 20, 0, 20);
-    hCBEnergySum = new TH1D("CBEnergySum", "CBEnergySum", 250, 0, 500); hCBEnergySum->Sumw2();
+    hCBEnergySum = new TH1D("CBEnergySum", "CBEnergySum", 500, 0, 1000); hCBEnergySum->Sumw2();
+    hCBEnergySumAllEvents = new TH1D("CBEnergySumAllEvents", "CBEnergySumAllEvents", 500, 0, 1000); hCBEnergySumAllEvents->Sumw2();
+    hCBEnergySumBadEvents = new TH1D("CBEnergySumBadEvents", "CBEnergySumBadEvents", 500, 0, 1000); hCBEnergySumBadEvents->Sumw2();
     hCBEnergySumTP = new TH1D("CBEnergySumTP", "CBEnergySumTP", 250, 0, 500); hCBEnergySumTP->Sumw2();
     hCBEnergySumTM = new TH1D("CBEnergySumTM", "CBEnergySumTM", 250, 0, 500); hCBEnergySumTM->Sumw2();
     hCBEnergySumFP = new TH1D("CBEnergySumFP", "CBEnergySumFP", 250, 0, 500); hCBEnergySumFP->Sumw2();
     hCBEnergySumFM = new TH1D("CBEnergySumFM", "CBEnergySumFM", 250, 0, 500); hCBEnergySumFM->Sumw2();
-    hCBEnergySumAllEvents = new TH1D("CBEnergySumAllEvents", "CBEnergySumAllEvents", 250, 0, 500); hCBEnergySumAllEvents->Sumw2();
     hCBEnergySum_VS_EventID = new TH2D("hCBEnergySum_VS_EventID", "hCBEnergySum_VS_EventID", 2000, 0, 2000000, 250, 0, 500);
     hCB2GammaDeltaTime = new TH1D("hCB2GammaDeltaTime", "hCB2GammaDeltaTime", 200, -100, 100);
 
