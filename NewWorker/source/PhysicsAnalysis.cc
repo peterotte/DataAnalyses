@@ -211,8 +211,9 @@ int Do_PhysicsAnalysis () {
             }
 
 
-//            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
-            if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
+            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
+//            if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
+//            if (1==0) { //No cut
                 MyEvent.CBClusters.erase(MyEvent.CBClusters.begin() + k);
             } else {
                 k++;
@@ -397,7 +398,7 @@ int Do_PhysicsAnalysis () {
                                 double MesonTaggTimeDiff = MesonTime-IncomingPhotonsTime.at(g);
 
                                 //Fill Debug histogram start
-                                if ( (MesonTaggTimeDiff >= -12.) && (MesonTaggTimeDiff <= 8.) ) {
+                                if ( (MesonTaggTimeDiff >= -10.) && (MesonTaggTimeDiff <= 10.) ) {
                                     hMesonInvMassVSMissingMass_Prompt->Fill(vSumBeforeFit.M(), P4Missing.M());
                                 }
                                 if ( ( (MesonTaggTimeDiff >= -130.) && (MesonTaggTimeDiff <= -30.) ) || ( (MesonTaggTimeDiff >= 30.) && (MesonTaggTimeDiff <= 130.) ) ) {
@@ -419,6 +420,8 @@ int Do_PhysicsAnalysis () {
                                         hMissingMassVsMesonThetaPrompt->Fill(P4Missing.M(), P4MesonCM.Theta()*180/TMath::Pi());
                                         hCBClusterMulti_VS_Energy_Photon_Prompt->Fill(MyEvent.CBClusters.at(k).NumberOfCrystals, MyEvent.CBClusters.at(k).Energy);
                                         hCBClusterMulti_VS_Energy_Photon_Prompt->Fill(MyEvent.CBClusters.at(l).NumberOfCrystals, MyEvent.CBClusters.at(l).Energy);
+                                        if (MyEvent.CBClusters.at(l).IsCharged) {hMesonPhi_PIDCheck->Fill(1.5, vSum.Phi()*180/TMath::Pi() ); } else {hMesonPhi_PIDCheck->Fill(0.5, vSum.Phi()*180/TMath::Pi());}
+                                        if (MyEvent.CBClusters.at(k).IsCharged) {hMesonPhi_PIDCheck->Fill(1.5, vSum.Phi()*180/TMath::Pi() );} else {hMesonPhi_PIDCheck->Fill(0.5, vSum.Phi()*180/TMath::Pi());}
 
                                         hAngleBetweenClusters->Fill(
                                                     GetAngleBetweenTwoVectors(MyEvent.CBClusters.at(k).Position, MyEvent.CBClusters.at(l).Position)*180/TMath::Pi(),

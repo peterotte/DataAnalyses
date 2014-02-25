@@ -42,6 +42,7 @@ typedef struct TCBCluster {
     int ClusterID; //Some number assigned by the Cluster Algorithm
     double Time; //in NS
     double Energy; //in MeV
+    double EnergyCentralElementID; //in MeV, vom Crystal CentralElementID
     int IsCharged; //if set to != 0, then its charged
     int CentralElementID; //ElementID des Clusters mit dem höchsten Energiewert
     int NumberOfCrystals; //Number of Crystals in Cluster above 0 MeV
@@ -178,6 +179,7 @@ TH2D *CBClusterEnergy_VS_CBNElemCluster; //Number of participation elements in a
 
 TH2D *hCBClusterMulti_VS_Energy_PIDUncharged, *hCBClusterMulti_VS_Energy_PIDCharged,
     *hCBClusterMulti_VS_Energy_Photon_Prompt, *hCBClusterMulti_VS_Energy_Photon_Bg, *hCBClusterMulti_VS_Energy_Photon_Signal;
+TH2D *hMesonPhi_PIDCheck;
 TH2D *hAngleBetweenClusters;
 
 //Physics histograms
@@ -367,6 +369,7 @@ int InitCalibHistograms() {
     hCBClusterMulti_VS_Energy_Photon_Prompt = new TH2D("hCBClusterMulti_VS_Energy_Photon_Prompt", "hCBClusterMulti_VS_Energy_Photon_Prompt", 20, 0, 20, 100, 0, 500); hCBClusterMulti_VS_Energy_Photon_Prompt->Sumw2();
     hCBClusterMulti_VS_Energy_Photon_Bg = new TH2D("hCBClusterMulti_VS_Energy_Photon_Bg", "hCBClusterMulti_VS_Energy_Photon_Bg", 20, 0, 20, 100, 0, 500); hCBClusterMulti_VS_Energy_Photon_Bg->Sumw2();
     hCBClusterMulti_VS_Energy_Photon_Signal = new TH2D("hCBClusterMulti_VS_Energy_Photon_Signal", "hCBClusterMulti_VS_Energy_Photon_Signal", 20, 0, 20, 100, 0, 500); hCBClusterMulti_VS_Energy_Photon_Signal->Sumw2();
+    hMesonPhi_PIDCheck = new TH2D("MesonPhi_PIDCheck", "MesonPhi_PIDCheck", 2, 0, 2, 24, -180, 180); hMesonPhi_PIDCheck->Sumw2(); //To check, how often a pi0 is produced and the PID says the photons were charged
 
     hMissingMassCombinedPrompt = new TH2D("MissingMassCombinedPrompt", "MissingMassCombinedPrompt", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedPrompt->Sumw2();
     hMissingMassCombinedBg = new TH2D("MissingMassCombinedBg", "MissingMassCombinedBg", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBg->Sumw2();

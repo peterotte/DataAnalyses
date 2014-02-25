@@ -123,6 +123,7 @@ int Do_CBClusterFinding() {
                             TempCluster.ClusterID = AktClusterID;
                             TempCluster.Time = EventBlock.Events.at(i).HitElements.at( CBElementID2HitElementID.at(AktGefElementID) ).Time.at(n);
                             TempCluster.Energy = AktClusterESum;
+                            TempCluster.EnergyCentralElementID = EventBlock.Events.at(i).HitElements.at( CBElementID2HitElementID.at(AktGefElementID) ).Energy;
                             TempCluster.CentralElementID = AktGefElementID;
                             TempCluster.NumberOfCrystals = AktNumberOfCrystals;
                             //TempCluster.Position = RawADCData.CB.Elements.at(AktGefElementID).Position; //Use this line, if the Cluster position should be the position of the element with highest Eeeeeee
