@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project(NewWorker)
+project(CompareWorker)
 
 # check for in-source build, forbid it!
 if(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR AND NOT MSVC_IDE)

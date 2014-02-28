@@ -17,19 +17,19 @@ void TaggEff(Int_t fback1, Int_t ffore, Int_t fback2) {
     //2. file: ffore (real taggeff measurement)
     //3. file: fback2 (after real taggeff measurement)
 
-    sprintf(buffer, "%s/%s.root", TaggEffInputPath, RunsMetaInformation.at(fback1).FileName.c_str());
+    sprintf(buffer, "%s/%d.root", TaggEffInputPath, fback1);
     TFile* back1 = new TFile(buffer);
     if( !back1 ){ printf("ERROR: File %s not found\n", buffer); return; }
 
-    sprintf(buffer, "%s/%s.root", TaggEffInputPath, RunsMetaInformation.at(ffore).FileName.c_str());
+    sprintf(buffer, "%s/%d.root", TaggEffInputPath, ffore);
     TFile* fore = new TFile(buffer);
     if( !fore ){ printf("ERROR: File %s not found\n", buffer); return; }
 
-    sprintf(buffer, "%s/%s.root", TaggEffInputPath, RunsMetaInformation.at(fback2).FileName.c_str());
+    sprintf(buffer, "%s/%d.root", TaggEffInputPath, fback2);
     TFile* back2 = new TFile(buffer);
     if( !back2 ){ printf("ERROR: File %s not found\n", buffer); return; }
 
-    sprintf(buffer, "%s/TaggEff_M_%i.root", TaggEffOutputPath, RunsMetaInformation.at(ffore).RunNumber);
+    sprintf(buffer, "%s/TaggEff_M_%d.root", TaggEffOutputPath, ffore);
     TFile* foutput = new TFile(buffer, "RECREATE");
     if( !foutput ){ printf("ERROR: File %s not found\n", buffer); return; }
     printf("TaggEff results go to: %s\n", buffer);
@@ -208,7 +208,7 @@ void TaggEff(Int_t fback1, Int_t ffore, Int_t fback2) {
 
     // ***************************************************************
 
-    TH1D *histMeanTaggEff = new TH1D("MeanTaggEff","MeanTaggEff",100,0,1);
+    TH1D *histMeanTaggEff = new TH1D("MeanTaggEff","MeanTaggEff",1000,0,1);
     for (int i=1;i<=NTaggChs;i++) {
         if (histTaggEffBgFree->GetBinContent(i) > 0) {
             histMeanTaggEff->Fill(histTaggEffBgFree->GetBinContent(i));
@@ -216,46 +216,27 @@ void TaggEff(Int_t fback1, Int_t ffore, Int_t fback2) {
     }
 
     //Now try to determine the average tagg eff value without points to far away
-    Char_t TempStr[1024];
-    sprintf(TempStr,"PrevFitTMP");
-    delete gROOT->FindObject(TempStr);
 
-    TF1 *PrevFitTMP = new TF1(TempStr,"gaus",0,1);
-    //PrevFitTMP->SetParameter(1, 0.09);
-
-    TFitResultPtr MyFitResult = histMeanTaggEff->Fit(TempStr, "QRF0"); //0 = do not draw, q=quiet, R = respect range, f = special min finder
-
-    Double_t MeanTaggEff = 0;
-    Int_t MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data, see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-    if (MyFitStatus == 0) {
-        MeanTaggEff = PrevFitTMP->GetParameter(1);
-        printf("INFO: Fit result: %f +- %f\n", PrevFitTMP->GetParameter(1), PrevFitTMP->GetParError(1));
-    } else {
-        printf("ERROR: Fit did not converge.\n");
-    }
-
+    Double_t MeanTaggEff = histMeanTaggEff->GetMean(1);
     histMeanTaggEff->Write();
 
     // ***************************************************************
     // Now kick out all outliners further away than 60% from average
 
-    if (MyFitStatus == 0) {
-        TH1D *histTaggEffBgFreeCorrected = (TH1D*)histTaggEffBgFree->Clone("TaggEffBgFreeC");
+    TH1D *histTaggEffBgFreeCorrected = (TH1D*)histTaggEffBgFree->Clone("TaggEffBgFreeC");
 
-        for (int i=1;i<=NTaggChs;i++) {
-            histTaggEffBgFreeCorrected->SetBinContent(i, 0);
-            histTaggEffBgFreeCorrected->SetBinError(i, 0);
-            if ( (histTaggEffBgFree->GetBinContent(i) < (MeanTaggEff*1.6)) && (histTaggEffBgFree->GetBinContent(i) > (MeanTaggEff*0.4)) ) {
-                if ((histTaggEffBgFree->GetBinError(i) / histTaggEffBgFree->GetBinContent(i)) < 1) {
-                    histTaggEffBgFreeCorrected->SetBinContent(i, histTaggEffBgFree->GetBinContent(i));
-                    histTaggEffBgFreeCorrected->SetBinError(i, histTaggEffBgFree->GetBinError(i));
-                }
+    for (int i=1;i<=NTaggChs;i++) {
+        histTaggEffBgFreeCorrected->SetBinContent(i, 0);
+        histTaggEffBgFreeCorrected->SetBinError(i, 0);
+        if ( (histTaggEffBgFree->GetBinContent(i) < (MeanTaggEff*1.6)) && (histTaggEffBgFree->GetBinContent(i) > (MeanTaggEff*0.4)) ) {
+            if ((histTaggEffBgFree->GetBinError(i) / histTaggEffBgFree->GetBinContent(i)) < 1) {
+                histTaggEffBgFreeCorrected->SetBinContent(i, histTaggEffBgFree->GetBinContent(i));
+                histTaggEffBgFreeCorrected->SetBinError(i, histTaggEffBgFree->GetBinError(i));
             }
         }
-
-        histTaggEffBgFreeCorrected->Write();
     }
 
+    histTaggEffBgFreeCorrected->Write();
 
 
     // ***************************************************************

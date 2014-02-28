@@ -27,35 +27,31 @@ typedef struct TValue {
     double ValueFError;
     double ValueT;
     double ValueTError;
+    double ValueDSG;
+    double ValueDSGError;
 } TValue;
 
-typedef struct TTheoryValue {
-    double Theta;
-    double ValueDSG;
-    double ValueF;
-    double ValueT;
-} TTheoryValue;
+typedef struct TDataSetPoint {
+	double ThetaBinWidth;
+	std::vector<TValue> Values;
+} TDataSetPoint;
+
+enum Data_DataSets {EMAID, ESven, EPeter, EPauline, NumberOfDataSets};
+const int Data_Colors[NumberOfDataSets] = {4, 1, 2, 3}; //The datasets from above do get the following colors: black, red, green, blue,
+const char Data_Names[NumberOfDataSets][20] = {"MAID", "Sven", "Peter", "Pauline"};
+const double Data_ThetaStartAngle[NumberOfDataSets] = {0, 5, 5, 20};
+const double Data_ThetaBinWidth[NumberOfDataSets] = {1, 10, 10, 15};
+int Data_NumberOfSkippedChannelsDuringFitting[NumberOfDataSets];
 
 typedef struct TDataAll {
     int TaggCh;
     double TaggerChE; //Energy of this TaggerCh
-
-    std::vector<TValue> ValuesPauline;
-    int NValuesPauline;
-    double ThetaBinWidthPauline;
-    std::vector<TValue> ValuesSven;
-    int NValuesSven;
-    double ThetaBinWidthSven;
-    std::vector<TValue> ValuesPeter;
-    int NValuesPeter;
-    double ThetaBinWidthPeter;
-    std::vector<TTheoryValue> TheoryValues;
-    int NTheoryValue;
+    std::vector<TDataSetPoint> DataSets;
 } TDataAll;
 
 std::vector<TDataAll> DataAll;
-int NDataAll = 0; //NumberOfEntries in DataAll
 const Int_t NumberOfThetaBins = 181;
+const Int_t NumberOfMaxTaggerCh = 257;
 
 std::vector<TH2D*> FitResults(5);
 
@@ -88,13 +84,13 @@ int ReadDataFilePauline(int fType, int fTaggCh) {
         Value1 = 0;
 
         if (sscanf(Line, "%f %f ", &Value0, &Value1 ) == 2) {
-            DataAll.at(fTaggCh).ThetaBinWidthPauline = 15;
+            DataAll.at(fTaggCh).DataSets.at(EPauline).ThetaBinWidth = 15;
             if (fType == 0) {
-                DataAll.at(fTaggCh).ValuesPauline.at(Counter).ValueF = Value0;
-                DataAll.at(fTaggCh).ValuesPauline.at(Counter).ValueFError = Value1;
+                DataAll.at(fTaggCh).DataSets.at(EPauline).Values.at(Counter).ValueF = Value0;
+                DataAll.at(fTaggCh).DataSets.at(EPauline).Values.at(Counter).ValueFError = Value1;
             } else {
-                DataAll.at(fTaggCh).ValuesPauline.at(Counter).ValueT = Value0;
-                DataAll.at(fTaggCh).ValuesPauline.at(Counter).ValueTError = Value1;
+                DataAll.at(fTaggCh).DataSets.at(EPauline).Values.at(Counter).ValueT = Value0;
+                DataAll.at(fTaggCh).DataSets.at(EPauline).Values.at(Counter).ValueTError = Value1;
             }
             Counter++;
         }
@@ -132,10 +128,13 @@ int ReadDataFileTheory(int fTaggCh) {
     for (int i=0; i<NumberOfThetaBins; i++) {
         if (!fgets(Line, sizeof(Line), readFile)) break;
         if (sscanf(Line, "%f %f %f %f %f %f %f %f %f %f ", &TempValue[0], &TempValue[1], &TempValue[2], &TempValue[3], &TempValue[4], &TempValue[5], &TempValue[6], &TempValue[7], &TempValue[8], &TempValue[9] ) == 10) {
-            DataAll.at(fTaggCh).TheoryValues.at(Counter).Theta = TempValue[0];
-            DataAll.at(fTaggCh).TheoryValues.at(Counter).ValueDSG = TempValue[2];
-            DataAll.at(fTaggCh).TheoryValues.at(Counter).ValueF = TempValue[7];
-            DataAll.at(fTaggCh).TheoryValues.at(Counter).ValueT = TempValue[3];
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).Theta = TempValue[0];
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueDSG = TempValue[2];
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueDSGError = TempValue[2]*0.00001+0.0000001; //The small errors are for root to draw the points. If value and error =0, root will not plot.
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueF = TempValue[7];
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueFError = TempValue[7]*0.00001+0.0000001;
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueT = TempValue[3];
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueTError = TempValue[3]*0.00001+0.0000001;
             //printf("%f %f %f %f %f %f %f %f %f %f \n", TempValue[0], TempValue[1], TempValue[2], TempValue[3], TempValue[4], TempValue[5], TempValue[6], TempValue[7], TempValue[8], TempValue[9] );
             Counter++;
         }
@@ -185,12 +184,15 @@ int ReadDataFileSven(int fType) {
                 float Value0, Value1, Value2, Value3;
                 if (sscanf(Line, "%f %f %f %f ", &Value0, &Value1, &Value2, &Value3) == 4) {
                     //printf("%d: %f %f \n", TaggCh, Value2, Value3);
+                    Value2 /= DataAll.at(TaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).Theta) ).ValueDSG;
+                    Value3 /= DataAll.at(TaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).Theta) ).ValueDSG;
+
                     if (fType == 0) {
-                        DataAll.at(TaggCh).ValuesSven.at(Counter).ValueF = Value2;
-                        DataAll.at(TaggCh).ValuesSven.at(Counter).ValueFError = Value3;
+                        DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).ValueF = Value2;
+                        DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).ValueFError = Value3;
                     } else {
-                        DataAll.at(TaggCh).ValuesSven.at(Counter).ValueT = Value2;
-                        DataAll.at(TaggCh).ValuesSven.at(Counter).ValueTError = Value3;
+                        DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).ValueT = Value2;
+                        DataAll.at(TaggCh).DataSets.at(ESven).Values.at(Counter).ValueTError = Value3;
                     }
                     Counter++;
                 }
@@ -236,11 +238,11 @@ int ReadDataFilePeter(int fType) {
             Counter = (int)((Value0-5.)/10.);
             //printf("%d: bin: %d \tAsym: %f %f \n", TaggCh, Counter, Value2, Value3);
             if (fType == 0) {
-                DataAll.at(TaggCh).ValuesPeter.at(Counter).ValueF = Value2;
-                DataAll.at(TaggCh).ValuesPeter.at(Counter).ValueFError = Value3;
+                DataAll.at(TaggCh).DataSets.at(EPeter).Values.at(Counter).ValueF = Value2;
+                DataAll.at(TaggCh).DataSets.at(EPeter).Values.at(Counter).ValueFError = Value3;
             } else {
-                DataAll.at(TaggCh).ValuesPeter.at(Counter).ValueT = Value2;
-                DataAll.at(TaggCh).ValuesPeter.at(Counter).ValueTError = Value3;
+                DataAll.at(TaggCh).DataSets.at(EPeter).Values.at(Counter).ValueT = Value2;
+                DataAll.at(TaggCh).DataSets.at(EPeter).Values.at(Counter).ValueTError = Value3;
             }
         }
     }
@@ -257,96 +259,35 @@ int ReadDataFilePeter(int fType) {
 int CreateVector(int fTaggCh) {
     TDataAll TempDataAll;
     TempDataAll.TaggCh = fTaggCh;
-    TempDataAll.NValuesPauline = 0;
-    TempDataAll.NValuesSven = 0;
-    TempDataAll.NValuesPeter = 0;
 
-    int Counter = 0;
     double ActTheta = 0;
     double ThetaBinWidth = 0;
 
-    //Theory
-    Counter = 0;
-    ActTheta = 0;
-    ThetaBinWidth = 1;
-    while (ActTheta <= 180) {
-        Counter++;
-        TTheoryValue TempTValue;
-        TempTValue.Theta = -10;
-        TempTValue.ValueDSG = -10;
-        TempTValue.ValueF = -10;
-        TempTValue.ValueT= -10;
-        TempDataAll.TheoryValues.push_back(TempTValue);
-        TempDataAll.NTheoryValue = Counter;
+    for (int i=0; i<NumberOfDataSets; i++ ) {
+        TDataSetPoint TempDataSetPoint;
 
-        ActTheta+=ThetaBinWidth;
-    }
-
-    //Pauline
-    //if (fTaggCh<=211)
-    {
-        Counter = 0;
-        ActTheta = 20;
-        ThetaBinWidth = 15;
-        while (ActTheta<170) {
-            Counter++;
+        ActTheta = Data_ThetaStartAngle[i];
+        ThetaBinWidth = Data_ThetaBinWidth[i];
+        while (ActTheta <= 180) {
             TValue TempTValue;
             TempTValue.Theta = ActTheta;
             TempTValue.ThetaError = ThetaBinWidth/sqrt(12);
+            TempTValue.ValueDSG = 0;
+            TempTValue.ValueDSGError = 0;
             TempTValue.ValueF = 0;
             TempTValue.ValueFError = 0;
             TempTValue.ValueT = 0;
             TempTValue.ValueTError = 0;
-            TempDataAll.ValuesPauline.push_back(TempTValue);
-            TempDataAll.NValuesPauline = Counter;
-            TempDataAll.ThetaBinWidthPauline = ThetaBinWidth;
+            TempDataSetPoint.Values.push_back(TempTValue);
+            TempDataSetPoint.ThetaBinWidth = ThetaBinWidth;
 
             ActTheta+=ThetaBinWidth;
         }
-    }
 
-    //Sven
-    Counter = 0;
-    ActTheta = 5;
-    ThetaBinWidth = 10;
-    while (ActTheta<180) {
-        Counter++;
-        TValue TempTValue;
-        TempTValue.Theta = ActTheta;
-        TempTValue.ThetaError = ThetaBinWidth/sqrt(12);
-        TempTValue.ValueF = -10;
-        TempTValue.ValueFError = -10;
-        TempTValue.ValueT = -10;
-        TempTValue.ValueTError = -10;
-        TempDataAll.ValuesSven.push_back(TempTValue);
-        TempDataAll.NValuesSven = Counter;
-        TempDataAll.ThetaBinWidthSven = ThetaBinWidth;
-
-        ActTheta+=ThetaBinWidth;
-    }
-
-    //Peter
-    Counter = 0;
-    ActTheta = 5;
-    ThetaBinWidth = 10;
-    while (ActTheta<180) {
-        Counter++;
-        TValue TempTValue;
-        TempTValue.Theta = ActTheta;
-        TempTValue.ThetaError = ThetaBinWidth/sqrt(12);
-        TempTValue.ValueF = -10;
-        TempTValue.ValueFError = -10;
-        TempTValue.ValueT = -10;
-        TempTValue.ValueTError = -10;
-        TempDataAll.ValuesPeter.push_back(TempTValue);
-        TempDataAll.NValuesPeter = Counter;
-        TempDataAll.ThetaBinWidthPeter = ThetaBinWidth;
-
-        ActTheta+=ThetaBinWidth;
+        TempDataAll.DataSets.push_back(TempDataSetPoint);
     }
 
     DataAll.push_back(TempDataAll);
-    NDataAll++;
 }
 
 int ReadTheoryData() {
@@ -390,7 +331,7 @@ int ReadTaggerCalibration() {
 
 int PrintDataInformation(int fTaggCh) {
     //Theory
-    printf("Theory\n");
+/*    printf("Theory\n");
     for (int k=0;k<DataAll.at(fTaggCh).NTheoryValue;k++) {
         printf("%6.2f ", DataAll.at(fTaggCh).TheoryValues.at(k).Theta);
     }
@@ -487,142 +428,69 @@ int PrintDataInformation(int fTaggCh) {
     for (int k=0;k<DataAll.at(fTaggCh).NValuesPeter;k++) {
         printf("%6.2f ", DataAll.at(fTaggCh).ValuesPeter.at(k).ValueTError);
     }
-    printf("\n");
+    printf("\n");*/
     printf("\n");
 }
 
 //*************************************************************************************
-int NumberOfSkippedChannels_Sven = 0;
-int NumberOfSkippedChannels_Peter = 0;
-int NumberOfSkippedChannels_Pauline = 0;
+
+int FillHistogram(int fDataSetNumber, int fAsymToAnalyse, int fTaggCh, int fMultiplyDSG, TH1D* MyHist) {
+    for(Int_t t=0; t < DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.size(); t++) {
+        if (fAsymToAnalyse) { //F
+            //PlotAsymmetry * DSG
+            if (fMultiplyDSG) {
+                MyHist->SetBinContent(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueF *
+                                           DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).Theta) ).ValueDSG );
+                MyHist->SetBinError(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueFError *
+                                         DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                MyHist->SetBinContent(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueF );
+                MyHist->SetBinError(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueFError );
+            }
+        } else { //T
+            //PlotAsymmetry * DSG
+            if (fMultiplyDSG) {
+                MyHist->SetBinContent(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueT *
+                                           DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).Theta) ).ValueDSG );
+                MyHist->SetBinError(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueTError *
+                                         DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at( lround(DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).Theta) ).ValueDSG );
+            } else {
+                //Plot Asymmetry
+                MyHist->SetBinContent(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueT );
+                MyHist->SetBinError(t+1, DataAll.at(fTaggCh).DataSets.at(fDataSetNumber).Values.at(t).ValueTError );
+            }
+        }
+    }
+    MyHist->SetLineColor(Data_Colors[fDataSetNumber]);
+    MyHist->SetMarkerColor(Data_Colors[fDataSetNumber]);
+    MyHist->SetMarkerStyle(20);
+    MyHist->SetMarkerSize(0.8);
+}
 
 int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultiplyDSG) {
     if (fDrawGraphs) TCanvas* Canvas = new TCanvas("Draw");
 
     gROOT->SetStyle("Plain");
+    gStyle->SetOptFit();
 
-    TH1F *HistPauline, *HistSven, *HistPeter;
+    TH1D *MyHist;
 
-    delete gROOT->FindObject("Pauline");
-    delete gROOT->FindObject("Sven");
-    delete gROOT->FindObject("Peter");
-    HistPauline = new TH1F("Pauline", "Pauline", DataAll.at(fTaggCh).NValuesPauline,
-                           DataAll.at(fTaggCh).ValuesPauline.at(0).Theta - DataAll.at(fTaggCh).ThetaBinWidthPauline/2,
-                           DataAll.at(fTaggCh).ValuesPauline.at(0).Theta +
-                           DataAll.at(fTaggCh).ThetaBinWidthPauline * DataAll.at(fTaggCh).NValuesPauline );
-    HistSven = new TH1F("Sven", "Sven", DataAll.at(fTaggCh).NValuesSven,
-                           DataAll.at(fTaggCh).ValuesSven.at(0).Theta - DataAll.at(fTaggCh).ThetaBinWidthSven/2,
-                           DataAll.at(fTaggCh).ValuesSven.at(0).Theta +
-                           DataAll.at(fTaggCh).ThetaBinWidthSven * DataAll.at(fTaggCh).NValuesSven );
-    HistPeter = new TH1F("Peter", "Peter", DataAll.at(fTaggCh).NValuesPeter,
-                           DataAll.at(fTaggCh).ValuesPeter.at(0).Theta - DataAll.at(fTaggCh).ThetaBinWidthPeter/2,
-                           DataAll.at(fTaggCh).ValuesPeter.at(0).Theta +
-                           DataAll.at(fTaggCh).ThetaBinWidthPeter * DataAll.at(fTaggCh).NValuesPeter );
+    for (int i=0; i<NumberOfDataSets; i++) {
+        delete gROOT->FindObject(Data_Names[i]);
+        MyHist = new TH1D(Data_Names[i], Data_Names[i], DataAll.at(fTaggCh).DataSets.at(i).Values.size(),
+                           DataAll.at(fTaggCh).DataSets.at(i).Values.at(0).Theta - DataAll.at(fTaggCh).DataSets.at(i).ThetaBinWidth/2,
+                           DataAll.at(fTaggCh).DataSets.at(i).Values.at(0).Theta - DataAll.at(fTaggCh).DataSets.at(i).ThetaBinWidth/2 +
+                           DataAll.at(fTaggCh).DataSets.at(i).ThetaBinWidth * DataAll.at(fTaggCh).DataSets.at(i).Values.size() );
 
-    for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesPauline; t++) {
-        if (fAsymToAnalyse) {
-            //PlotAsymmetry * DSG
-            if (fMultiplyDSG) {
-                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF *
-                                           DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError *
-                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-            } else {
-                //Plot Asymmetry
-                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueF );
-                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueFError );
-            }
-        } else {
-            //PlotAsymmetry * DSG
-            if (fMultiplyDSG) {
-                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT *
-                                           DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError *
-                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPauline.at(t).Theta) ).ValueDSG );
-            } else {
-                //Plot Asymmetry
-                HistPauline->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueT );
-                HistPauline->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPauline.at(t).ValueTError );
-            }
-        }
+        FillHistogram(i, fAsymToAnalyse, fTaggCh, fMultiplyDSG, MyHist);
+        Data_NumberOfSkippedChannelsDuringFitting[i] = 0;
     }
-    HistPauline->SetLineColor(kGreen);
-    HistPauline->SetMarkerColor(kGreen);
-    HistPauline->SetMarkerStyle(20);
-    HistPauline->SetMarkerSize(0.9);
-
-    for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesSven; t++) {
-        if (fAsymToAnalyse) {
-            //Plot Asymmetry * DSG
-            if (fMultiplyDSG) {
-                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF );
-                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError );
-            } else {
-                //Plot Asymmetry
-                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueF /
-                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
-                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueFError /
-                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
-            }
-        } else {
-            //Plot Asymmetry * DSG
-            if (fMultiplyDSG) {
-                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT );
-                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError );
-            } else {
-                //Plot Asymmetry
-                HistSven->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueT /
-                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG );
-                HistSven->SetBinError(t+1, DataAll.at(fTaggCh).ValuesSven.at(t).ValueTError /
-                                        DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesSven.at(t).Theta) ).ValueDSG);
-            }
-        }
-    }
-    HistSven->SetLineColor(kBlack);
-    HistSven->SetMarkerColor(kBlack);
-    HistSven->SetMarkerStyle(20);
-    HistSven->SetMarkerSize(0.9);
-
-    for(Int_t t=0; t < DataAll.at(fTaggCh).NValuesPeter; t++) {
-        if (fAsymToAnalyse) {
-            //Plot Asymmetry * DSG
-            if (fMultiplyDSG) {
-                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF *
-                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError *
-                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-            } else {
-                //Plot Asymmetry
-                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueF );
-                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueFError );
-            }
-        } else {
-            //Plot Asymmetry * DSG
-            if (fMultiplyDSG) {
-                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT *
-                                         DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError *
-                                       DataAll.at(fTaggCh).TheoryValues.at( lround(DataAll.at(fTaggCh).ValuesPeter.at(t).Theta) ).ValueDSG );
-            } else {
-                //Plot Asymmetry
-                HistPeter->SetBinContent(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueT );
-                HistPeter->SetBinError(t+1, DataAll.at(fTaggCh).ValuesPeter.at(t).ValueTError );
-            }
-        }
-    }
-    HistPeter->SetLineColor(kRed);
-    HistPeter->SetMarkerColor(kRed);
-    HistPeter->SetMarkerStyle(20);
-    HistPeter->SetMarkerSize(0.9);
-
-
-    //********************************************************************************
 
 
     //********************************************************************************
 
     ActualTaggCh = fTaggCh;
-    gStyle->SetOptFit();
     char tempStr[1000];
     Int_t MyFitStatus = 0;
     char StrFitParameters[10];
@@ -633,104 +501,61 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
         strcpy(StrFitParameters, "0RqFU+");
     }
 
-    if (HistSven->Integral() != 0) {
-        sprintf(tempStr,"DataFit_Sven_%i",fTaggCh);
-        delete gROOT->FindObject(tempStr);
-        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-        PrevFitTMP->SetLineColor(kBlack);
-        PrevFitTMP->SetLineWidth(2);
-        PrevFitTMP->SetParameter(0, 1);
-        PrevFitTMP->SetParameter(1, 0);
-        PrevFitTMP->SetParameter(2, 0);
-        PrevFitTMP->SetParameter(3, 0);
-    //	PrevFitTMP->FixParameter(2, 0);
-        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-        TFitResultPtr MyFitResult = HistSven->Fit(tempStr, StrFitParameters);
+    for (int m=0; m<NumberOfDataSets; m++) {
+        MyHist = (TH1D*)gROOT->FindObject(Data_Names[m]);
+        if (MyHist->Integral() != 0) {
+            sprintf(tempStr,"Fit_%s_Ch%i",Data_Names[m],fTaggCh);
+            delete gROOT->FindObject(tempStr);
+            TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
+            PrevFitTMP->SetLineColor(Data_Colors[m]);
+            PrevFitTMP->SetLineWidth(2);
+            PrevFitTMP->SetParameter(0, 1);
+            PrevFitTMP->SetParameter(1, 0);
+            PrevFitTMP->SetParameter(2, 0);
+            PrevFitTMP->SetParameter(3, 0);
+        //	PrevFitTMP->FixParameter(2, 0);
+            PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
+            TFitResultPtr MyFitResult = MyHist->Fit(tempStr, StrFitParameters);
 
-        MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-        if (MyFitStatus == 0) {
-            for (int i=0;i<4;i++){
-                FitResults.at(i)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetParameter(i));
-                FitResults.at(i)->SetBinError(fTaggCh+1, 1, PrevFitTMP->GetParError(i));
+            MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
+                                 //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
+            if (MyFitStatus == 0) {
+                for (int i=0;i<4;i++){
+                    FitResults.at(i)->SetBinContent(fTaggCh+1, m+1, PrevFitTMP->GetParameter(i));
+                    FitResults.at(i)->SetBinError(fTaggCh+1, m+1, PrevFitTMP->GetParError(i));
+                }
+                if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, m+1, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
+                FitResults.at(4)->SetBinError(fTaggCh+1, m+1, 0);
+            } else {
+                printf("|%d|",m);
+                fflush(stdout);
             }
-            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 1, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
-            FitResults.at(4)->SetBinError(fTaggCh+1, 1, 0);
         } else {
-            printf("ERROR: Fit did not converge.\n");
+            printf("-%d-",m);
+            fflush(stdout);
+            Data_NumberOfSkippedChannelsDuringFitting[m]++;
         }
-    } else {
-        NumberOfSkippedChannels_Sven++;
     }
 
-    //************************************************************************
-
-    if (HistPeter->Integral() != 0) {
-        sprintf(tempStr,"DataFit_Peter_%i",fTaggCh);
-        delete gROOT->FindObject(tempStr);
-        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-        PrevFitTMP->SetLineColor(kRed);
-        PrevFitTMP->SetLineWidth(2);
-        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-        TFitResultPtr MyFitResult_Peter = HistPeter->Fit(tempStr, StrFitParameters);
-
-        MyFitStatus = MyFitResult_Peter; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-        if (MyFitStatus == 0) {
-            for (int i=0;i<4;i++){
-                FitResults.at(i)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetParameter(i));
-                FitResults.at(i)->SetBinError(fTaggCh+1, 2, PrevFitTMP->GetParError(i));
-            }
-            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 2, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
-            FitResults.at(4)->SetBinError(fTaggCh+1, 2, 0);
-        } else {
-            printf("ERROR: Fit did not converge.\n");
-        }
-    } else {
-        NumberOfSkippedChannels_Peter++;
-    }
-
-    //************************************************************************
-
-    if (HistPauline->Integral() != 0) {
-        sprintf(tempStr,"DataFit_Pauline_%i",fTaggCh);
-        delete gROOT->FindObject(tempStr);
-        TF1 *PrevFitTMP = new TF1(tempStr,FitFunction,0,180,4); //From ,to, NumberOfParameters
-        PrevFitTMP->SetLineColor(kGreen);
-        PrevFitTMP->SetLineWidth(2);
-        PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
-        TFitResultPtr MyFitResult_Pauline = HistPauline->Fit(tempStr, StrFitParameters);
-
-        MyFitStatus = MyFitResult_Pauline; //0 = alles okay, 4 fehler beim Fit, -1 = no data,
-                             //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
-        if (MyFitStatus == 0) {
-            for (int i=0;i<4;i++){
-                FitResults.at(i)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetParameter(i));
-                FitResults.at(i)->SetBinError(fTaggCh+1, 3, PrevFitTMP->GetParError(i));
-            }
-            if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, 3, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
-            //printf("%d\t%f\t%d\t%f\n", fTaggCh, PrevFitTMP->GetChisquare(), PrevFitTMP->GetNDF(), PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
-            FitResults.at(4)->SetBinError(fTaggCh+1, 3, 0);
-        } else {
-            printf("ERROR: Fit did not converge.\n");
-        }
-    } else {
-        NumberOfSkippedChannels_Pauline++;
-    }
-
-    //************************************************************************
+    //*****************************************************************
 
     if (fDrawGraphs) {
-        HistPeter->Draw("");
-        HistSven->Draw("same");
-        HistPauline->Draw("same");
+        int NAlreadyDrawn = 0;
+        for (int i=0; i<NumberOfDataSets; i++) {
+            if (NAlreadyDrawn) {
+                ((TH1D*)(gROOT->FindObject(Data_Names[i])))->Draw("same");
+            } else {
+                ((TH1D*)(gROOT->FindObject(Data_Names[i])))->Draw();
+            }
+            NAlreadyDrawn++;
+        }
     }
+
 }
 
 int main(int argc, char **argv) {
     int i;
     char tempStr[1000];
-
 
     //-------------- Ok nun eingelesen, mache etwas mit den Daten
     //Prevent Root from showing a big info screen.
@@ -748,24 +573,17 @@ int main(int argc, char **argv) {
     int DoNotDrawPauline = 0;
     int fMultiplyDSG = -1;
     int ActualSetupNumber = 0;
+    int TempInt;
     for (i=1; i< argc; i++) {
         if (strncmp("--", argv[i], 1)) {
             strcpy(tempStr, argv[i]);
-            fSelectedAsym = strtol(tempStr, (char **)NULL, 10);
+            TempInt = strtol(tempStr, (char **)NULL, 10);
             if (ActualSetupNumber==0) {
-                switch (fSelectedAsym) {
-                case 0: Printf("INFO: Selected Asym T\n");
-                    break;
-                case 1: Printf("INFO: Selected Asym F\n");
-                    break;
-                default: Printf("INFO: Selected Asym T\n");
-                    fSelectedAsym = 0;
-                    break;
-                }
+                fSelectedAsym = TempInt;
                 ActualSetupNumber++;
             } else if (ActualSetupNumber==1) {
                 ActualSetupNumber++;
-                TaggerChToLookat = fSelectedAsym;
+                TaggerChToLookat = TempInt;
                 Printf("TaggerChToLookat: %d\n", TaggerChToLookat);
             }
         } else {
@@ -776,50 +594,54 @@ int main(int argc, char **argv) {
         }
     }
 
+    switch (fSelectedAsym) {
+    case 0: Printf("INFO: Selected Asym T\n");
+        break;
+    case 1: Printf("INFO: Selected Asym F\n");
+        break;
+    default: Printf("INFO: Selected Asym T\n");
+        fSelectedAsym = 0;
+        break;
+    }
 
     for (i=0;i<257; i++) {
         CreateVector(i);
     }
+    Printf("Vector created.");
+
     ReadTaggerCalibration();
-    FitResults.at(0) = new TH2D("FitResults_P0", "FitResults_P0", 257,0,256, 3,0,2);
-    FitResults.at(1) = new TH2D("FitResults_P1", "FitResults_P1", 257,0,256, 3,0,2);
-    FitResults.at(2) = new TH2D("FitResults_P2", "FitResults_P2", 257,0,256, 3,0,2);
-    FitResults.at(3) = new TH2D("FitResults_P3", "FitResults_P3", 257,0,256, 3,0,2);
-    FitResults.at(4) = new TH2D("FitResults_Chi2", "FitResults_Chi2", 257,0,256, 3,0,2);
+    Printf("Tagger Calibration read.");
 
     ReadTheoryData();
-
     ReadDataPauline();
     ReadDataSven();
     ReadDataPeter();
+    Printf("Data read.");
 
-/*
-//    for (i = 0;i<NDataAll;i++) {
-        for (i = 0;i<200;i++) {
-        printf("TaggCh: %i\tNValuePauline: %i\tNValueSven: %i\tNValuePeter: %i\n", DataAll.at(i).TaggCh,
-               DataAll.at(i).NValuesPauline, DataAll.at(i).NValuesSven, DataAll.at(i).NValuesPeter);
-        PrintDataInformation(i);
-    }
-*/
+    FitResults.at(0) = new TH2D("FitResults_P0", "FitResults_P0", NumberOfMaxTaggerCh,0,NumberOfMaxTaggerCh, NumberOfDataSets,0,NumberOfDataSets);
+    FitResults.at(1) = new TH2D("FitResults_P1", "FitResults_P1", NumberOfMaxTaggerCh,0,NumberOfMaxTaggerCh, NumberOfDataSets,0,NumberOfDataSets);
+    FitResults.at(2) = new TH2D("FitResults_P2", "FitResults_P2", NumberOfMaxTaggerCh,0,NumberOfMaxTaggerCh, NumberOfDataSets,0,NumberOfDataSets);
+    FitResults.at(3) = new TH2D("FitResults_P3", "FitResults_P3", NumberOfMaxTaggerCh,0,NumberOfMaxTaggerCh, NumberOfDataSets,0,NumberOfDataSets);
+    FitResults.at(4) = new TH2D("FitResults_Chi2", "FitResults_Chi2", NumberOfMaxTaggerCh,0,NumberOfMaxTaggerCh, NumberOfDataSets,0,NumberOfDataSets);
 
-//    ProcessTaggCh(100, -1, fSelectedAsym, -1);
-//    PrintDataInformation(230);
-    NumberOfSkippedChannels_Sven=0;
-    NumberOfSkippedChannels_Peter=0;
-    NumberOfSkippedChannels_Pauline=0;
+
 
     for (i=0; i<257; i++) {
         ProcessTaggCh(i, 0, fSelectedAsym, fMultiplyDSG); //int fTaggCh, int fDrawGraphs, int fAsymToAnalyse (0=T, 1=F), Plot Asymmetry or A*DSG
+        printf(".");
     }
-    printf("Skipped Histos: %d\t%d\t%d\n", NumberOfSkippedChannels_Sven, NumberOfSkippedChannels_Peter, NumberOfSkippedChannels_Pauline);
-    //PrintDataInformation(100);
+    Printf("Fitting completed.");
 
-/*    TCanvas *c1 = new TCanvas("CanvasFitResults");
+    for (int i=0; i<NumberOfDataSets; i++) {
+        printf("Skipped Histos for DataSet %s: %d\n", Data_Names[i], Data_NumberOfSkippedChannelsDuringFitting[i]);
+    }
+
+    TCanvas *c1 = new TCanvas("CanvasFitResults");
     c1->Divide(4,1);
     for (i=0;i<4;i++) {
         c1->cd(i+1); FitResults.at(i)->Draw("COLZ");
     }
-*/
+
 
     sprintf(tempStr, "DataCompiled_F");
     if (fSelectedAsym==0) sprintf(tempStr, "DataCompiled_T");
@@ -830,17 +652,17 @@ int main(int argc, char **argv) {
     for (i=0;i<5;i++) { //i = loop through parameters
         c2->cd(i+1);
         NHistosDrawn = 0;
-        for (int k=0;k<3;k++) { //k = loop through results from people
-            if ((k==0) &&(DoNotDrawSven)) continue;
-            if ((k==1) &&(DoNotDrawPeter)) continue;
-            if ((k==2) &&(DoNotDrawPauline)) continue;
+        for (int k=0;k<NumberOfDataSets;k++) { //k = loop through results from people
+            if ((k==ESven) &&(DoNotDrawSven)) continue;
+            if ((k==EPeter) &&(DoNotDrawPeter)) continue;
+            if ((k==EPauline) &&(DoNotDrawPauline)) continue;
             if (i<4) {
                 sprintf(tempStr, "Parameter_%d_%d", i, k);
             } else {
                 sprintf(tempStr, "Chi2/DoF_%d", k);
             }
             TH1D *h1 = (TH1D*)FitResults.at(i)->ProjectionX(tempStr,k+1,k+1);
-            h1->SetLineColor(k+1);
+            h1->SetLineColor(Data_Colors[k]);
             if (NHistosDrawn==0) {
                 h1->Draw("");
                 if (fSelectedAsym==0) { //T
@@ -867,13 +689,9 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (TaggerChToLookat>=0) ProcessTaggCh(TaggerChToLookat, -1, fSelectedAsym, 0);
-
+    if (TaggerChToLookat>=0) ProcessTaggCh(TaggerChToLookat, -1, fSelectedAsym, 1);
 
     theApp->SetPrompt("NewCompare %d: ");
-
-    //TBrowser *TB = new TBrowser();
-
     theApp->Run();
 
     return 0;

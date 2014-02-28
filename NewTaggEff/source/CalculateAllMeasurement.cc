@@ -26,7 +26,7 @@ int CombineAllMeasurements() {
     //Fill 2D histo
     for (Int_t k = 0; k <NTaggEffRunsMetaInformation; k++) {
         Char_t buffer[1024];
-        sprintf(buffer, "%s/TaggEff_M_%i.root", TaggEffOutputPath, RunsMetaInformation.at(TaggEffRunsMetaInformation.at(k).RunMeasurement).RunNumber);
+        sprintf(buffer, "%s/TaggEff_M_%i.root", TaggEffOutputPath, TaggEffRunsMetaInformation.at(k).RunMeasurement);
         printf("File %5i: ", TaggEffRunsMetaInformation.at(k).RunMeasurement);
         printf("Read %s\n",buffer);
         TFile *fActFile = new TFile(buffer);
