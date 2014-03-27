@@ -132,9 +132,9 @@ int ReadDataFileTheory(int fTaggCh) {
             DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueDSG = TempValue[2];
             DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueDSGError = TempValue[2]*0.00001+0.0000001; //The small errors are for root to draw the points. If value and error =0, root will not plot.
             DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueF = TempValue[7];
-            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueFError = TempValue[7]*0.00001+0.0000001;
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueFError = TempValue[7]*0.01+0.001;
             DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueT = TempValue[3];
-            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueTError = TempValue[3]*0.00001+0.0000001;
+            DataAll.at(fTaggCh).DataSets.at(EMAID).Values.at(Counter).ValueTError = TempValue[3]*0.01+0.001;
             //printf("%f %f %f %f %f %f %f %f %f %f \n", TempValue[0], TempValue[1], TempValue[2], TempValue[3], TempValue[4], TempValue[5], TempValue[6], TempValue[7], TempValue[8], TempValue[9] );
             Counter++;
         }
@@ -513,7 +513,7 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
             PrevFitTMP->SetParameter(1, 0);
             PrevFitTMP->SetParameter(2, 0);
             PrevFitTMP->SetParameter(3, 0);
-        //	PrevFitTMP->FixParameter(2, 0);
+            //PrevFitTMP->FixParameter(3, 0);
             PrevFitTMP->SetParNames("StrengthSin","StrengthCos", "StrengthCos2", "StrengthCos3");
             TFitResultPtr MyFitResult = MyHist->Fit(tempStr, StrFitParameters);
 
@@ -521,11 +521,12 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
                                  //see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1
             if (MyFitStatus == 0) {
                 for (int i=0;i<4;i++){
-                    FitResults.at(i)->SetBinContent(fTaggCh+1, m+1, PrevFitTMP->GetParameter(i));
-                    FitResults.at(i)->SetBinError(fTaggCh+1, m+1, PrevFitTMP->GetParError(i));
+                    //zuvor: fTaggCh+1
+                    FitResults.at(i)->SetBinContent(FitResults.at(i)->GetNbinsX()-fTaggCh, m+1, PrevFitTMP->GetParameter(i));
+                    FitResults.at(i)->SetBinError(FitResults.at(i)->GetNbinsX()-fTaggCh, m+1, PrevFitTMP->GetParError(i));
                 }
-                if (PrevFitTMP->GetChisquare() > 0.001) FitResults.at(4)->SetBinContent(fTaggCh+1, m+1, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
-                FitResults.at(4)->SetBinError(fTaggCh+1, m+1, 0);
+                if ( (PrevFitTMP->GetChisquare() > 0.001) && (m != EMAID) ) FitResults.at(4)->SetBinContent(FitResults.at(4)->GetNbinsX()-fTaggCh, m+1, PrevFitTMP->GetChisquare()/PrevFitTMP->GetNDF());
+                FitResults.at(4)->SetBinError(FitResults.at(4)->GetNbinsX()-fTaggCh, m+1, 0);
             } else {
                 printf("|%d|",m);
                 fflush(stdout);
@@ -553,6 +554,39 @@ int ProcessTaggCh(int fTaggCh, int fDrawGraphs, int fAsymToAnalyse, int fMultipl
 
 }
 
+int PlotDataAtFixedAngle() {
+    TCanvas *c1 = new TCanvas("CanvasFixedAngle");
+    char tempStr[1000];
+
+    int NDrawnHisto = 0;
+    const int Data_Bins[NumberOfDataSets] = {45, 4, 4, 2};
+
+    TH1D *hFixedAngle[NumberOfDataSets];
+    //for (int m=0; m<1; m++) {
+        for (int m=0; m<NumberOfDataSets; m++) {
+        sprintf(tempStr, "FixedAngle_%s", Data_Names[m]);
+        hFixedAngle[m] = new TH1D(tempStr, tempStr, NumberOfMaxTaggerCh, 0, NumberOfMaxTaggerCh );
+        hFixedAngle[m]->SetLineColor(Data_Colors[m]);
+        hFixedAngle[m]->SetAxisRange(-2,2,"Y");
+
+        printf("Plot for theta angle %f.\n", DataAll.at(0).DataSets.at(m).Values.at(Data_Bins[m]).Theta );
+        for (int fTaggCh=0; fTaggCh<NumberOfMaxTaggerCh; fTaggCh++) {
+            hFixedAngle[m]->SetBinContent(fTaggCh+1, DataAll.at(fTaggCh).DataSets.at(m).Values.at(Data_Bins[m]).ValueF);
+        }
+
+        if (NDrawnHisto) {
+            hFixedAngle[m]->Draw("same");
+        } else {
+            hFixedAngle[m]->Draw("");
+        }
+
+        NDrawnHisto++;
+    }
+
+}
+
+//*********************************************************************
+
 int main(int argc, char **argv) {
     int i;
     char tempStr[1000];
@@ -566,6 +600,7 @@ int main(int argc, char **argv) {
     gStyle->SetPalette(1);
     //The following line needs to be before each Draw, does not work otherwise in compiled program
     gStyle->SetOptFit(); //To get the Fit Parameters into the FitPanel.
+    gStyle->SetOptStat("100000000001"); //Only the Text in the Stat Window
 
     Int_t fSelectedAsym = 0; //0=T, 1=F
     int DoNotDrawSven = 0;
@@ -573,6 +608,7 @@ int main(int argc, char **argv) {
     int DoNotDrawPauline = 0;
     int fMultiplyDSG = -1;
     int ActualSetupNumber = 0;
+    int DrawThresholdsRegion = 0;
     int TempInt;
     for (i=1; i< argc; i++) {
         if (strncmp("--", argv[i], 1)) {
@@ -591,6 +627,7 @@ int main(int argc, char **argv) {
             if (!strcmp("-Peter", argv[i])) DoNotDrawPeter = -1;
             if (!strcmp("-Pauline", argv[i])) DoNotDrawPauline = -1;
             if (!strcmp("-Asymmetry", argv[i])) fMultiplyDSG = 0;
+            if (!strcmp("-Threshold", argv[i])) DrawThresholdsRegion = -1;
         }
     }
 
@@ -636,21 +673,23 @@ int main(int argc, char **argv) {
         printf("Skipped Histos for DataSet %s: %d\n", Data_Names[i], Data_NumberOfSkippedChannelsDuringFitting[i]);
     }
 
+    /*
     TCanvas *c1 = new TCanvas("CanvasFitResults");
     c1->Divide(4,1);
-    for (i=0;i<4;i++) {
+    for (i=0;i<4;i++) { //Number of free Fit Parameters put in here
         c1->cd(i+1); FitResults.at(i)->Draw("COLZ");
-    }
+    }*/
 
 
     sprintf(tempStr, "DataCompiled_F");
     if (fSelectedAsym==0) sprintf(tempStr, "DataCompiled_T");
 
     TCanvas *c2 = new TCanvas(tempStr);
-    c2->Divide(3,2);
+    c2->Divide(2,2);
     int NHistosDrawn = 0;
-    for (i=0;i<5;i++) { //i = loop through parameters
+    for (i=0;i<4;i++) { //i = loop through parameters, normal: i<5
         c2->cd(i+1);
+        if (i==3) i=4;
         NHistosDrawn = 0;
         for (int k=0;k<NumberOfDataSets;k++) { //k = loop through results from people
             if ((k==ESven) &&(DoNotDrawSven)) continue;
@@ -665,6 +704,7 @@ int main(int argc, char **argv) {
             h1->SetLineColor(Data_Colors[k]);
             if (NHistosDrawn==0) {
                 h1->Draw("");
+                if (DrawThresholdsRegion) h1->SetAxisRange(0,56,"X");
                 if (fSelectedAsym==0) { //T
                     switch (i) {
                     case 0: h1->SetAxisRange(-4,7,"Y"); break;
@@ -688,6 +728,8 @@ int main(int argc, char **argv) {
             NHistosDrawn++;
         }
     }
+
+    //PlotDataAtFixedAngle();
 
     if (TaggerChToLookat>=0) ProcessTaggCh(TaggerChToLookat, -1, fSelectedAsym, 1);
 

@@ -211,9 +211,9 @@ int Do_PhysicsAnalysis () {
             }
 
 
-            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
-//            if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
-//            if (1==0) { //No cut
+//            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
+  //          if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
+            if (1==0) { //No cut
                 MyEvent.CBClusters.erase(MyEvent.CBClusters.begin() + k);
             } else {
                 k++;
@@ -338,11 +338,19 @@ int Do_PhysicsAnalysis () {
                                 Printf("WARNING: Unexpected Helicity Bit: %d",MyEvent.HelicityBit);
                             }
                         }
+
+                        //D3bug: Do Helicity Bit randomly
+                        RndNumber++;
+                        if (EffHelBeam != 0.) {
+                            EffHelBeam = +1;
+                            if ((rnd->Rndm(RndNumber))>0.5) EffHelBeam=-1;
+                        }
+                        //printf("EffHelBeam: %f %f\n",EffHelBeam, rnd->Rndm(RndNumber));
                         //if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;} //No longer necessary because faulty files do not get used for F later
 
 
-//                        if ( TMath::Abs(MassPion0-vSum.M()) < 200 ) { //200 for tests to see the ful Inv Mass Distribution
-                        if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) {
+                        if ( TMath::Abs(MassPion0-vSum.M()) < 200 ) { //200 for tests to see the ful Inv Mass Distribution
+//                        if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) { //Normal
                             //******** Kin Fit Start ******
 
                             TA2CBKinematicFitter* KinFitter;

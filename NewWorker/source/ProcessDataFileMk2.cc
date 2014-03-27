@@ -167,7 +167,7 @@ int ProcessDataFileMk2() {
                                 hErrorBlocks->Fill(AnzahlEvents, (ptrN[i+bi+ei+2].AsInt*10+ptrN[i+bi+ei+3].AsInt) );
                              #endif
 
-                           //  Printf("Error block (buffer#: %5u  BufferEvent#: %3u  Event#: %6u): %3x %3x %3x",AnzahlBuffer,EventAnzahlImBuffer,AnzahlEvents, ptr[i+bi+ei+1],ptr[i+bi+ei+2],ptr[i+bi+ei+3]);
+                             //Printf("Error block (buffer#: %5u  BufferEvent#: %3u  Event#: %6u): %3x %3x %3x",AnzahlBuffer,EventAnzahlImBuffer,AnzahlEvents, ptrN[i+bi+ei+1].AsInt,ptrN[i+bi+ei+2].AsInt,ptrN[i+bi+ei+3].AsInt);
 
                              ei = ei + 4;
                              if (ptrN[i+bi+ei].AsInt != 0xefefefef) { //Fehlerblock nicht terminiert

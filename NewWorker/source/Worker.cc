@@ -215,6 +215,8 @@ void *ThreadHandle(void *ptr) {
 int main(int argc, char **argv)
 {
     InitializeLookupTables();
+    rnd = new TRandom3((unsigned)time(NULL));
+
     //c standard: 0 = false, sonst true
     Char_t FileIDStr[1024];
     FileIDStr[0] = '\0';

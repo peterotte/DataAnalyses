@@ -2,9 +2,9 @@
 #include "TMath"
 #include <cstddef>
 
-const char Str_RootFilesHResultsFT[] = "output/sumH_FT.root";
-const char Str_RootFilesHResultsET[] = "output/sumH_ET.root";
-const char Str_RootFilesResultsSignal[] = "output/sumH.root"; 
+const char Str_RootFilesHResultsFT[] = "sumH_FT.root";
+const char Str_RootFilesHResultsET[] = "sumH_ET.root";
+const char Str_RootFilesResultsSignal[] = "sumH.root"; 
 
 // Number of Photons (Livetime and Taggeff corrected) FT / ET
 double ScaleFactor = 0;

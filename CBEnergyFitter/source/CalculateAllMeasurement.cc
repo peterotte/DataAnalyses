@@ -206,25 +206,36 @@ void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int 
         delete gROOT->FindObject("Divide");
         TH1D* hDiff = (TH1D*)hScaler->Clone("Divide");
 
-        double LiveTimeTagger = hLiveTime->GetBinContent(3) / hLiveTime->GetBinContent(1);
-        double LiveTimeExp = hLiveTime->GetBinContent(2) / hLiveTime->GetBinContent(1);
+        double LiveTimeTagger = 1.*hLiveTime->GetBinContent(3) / (1.*hLiveTime->GetBinContent(1));
+        double LiveTimeExp = 1.*hLiveTime->GetBinContent(2) / (1.*hLiveTime->GetBinContent(1));
 
-        //Method 1: Tagg Sc / Tagg TDCs
-    /*    TH1D *hTime1D = hTime2D->ProjectionY("Time1D",700,950);
-        //hScaler->Scale(1./LiveTimeTagger);
-       // hTime1D->Scale(1./LiveTimeExp);
-
-        hDiff->Divide(hTime1D);
-    */
         //Method 2: Tagg Sc / NMesons
         double NMesons = hMesonInvariantMass1D->Integral(134-20+1,124+20+1);
         hDiff->Scale(1./NMesons);
         hDiff->Scale(1.*LiveTimeExp/LiveTimeTagger);
 
         for (int i=0; i< NTaggChs; i++) {
-            hScalerVSTDCRatio->SetBinContent(fFileNumber+1, i+1, hDiff->GetBinContent(i+1));
-            hScalerVSTDCRatio->SetBinError(fFileNumber+1, i+1, hDiff->GetBinError(i+1));
+            hScalerVSTDCRatio_Meson->SetBinContent(fFileNumber+1, i+1, hDiff->GetBinContent(i+1));
+            hScalerVSTDCRatio_Meson->SetBinError(fFileNumber+1, i+1, hDiff->GetBinError(i+1));
         }
+
+
+        //Method 1: Tagg Sc / Tagg TDCs
+        delete gROOT->FindObject("Divide2");
+        TH1D* hDiff2 = (TH1D*)hScaler->Clone("Divide2");
+        TH1D *hTime1D = hTime2D->ProjectionY("Time1D",700,950);
+
+        hDiff2->Divide(hTime1D);
+        hDiff2->Scale(LiveTimeExp/LiveTimeTagger); //TotalUsedEvents
+        for (int i=0; i< NTaggChs; i++) {
+            hScalerVSTDCRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hDiff2->GetBinContent(i+1));
+            hScalerVSTDCRatio_Tagg->SetBinError(fFileNumber+1, i+1, hDiff2->GetBinError(i+1));
+
+            hScalerVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hScaler->GetBinContent(i+1)/hScaler->GetBinContent(36+1));
+           // hScalerVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hScaler->GetBinError(i+1)/hScaler->GetBinError(36+1));
+        }
+
+
         // ***************************************************************
 
         //Stability Tests
@@ -343,7 +354,7 @@ void DoAllFiles() {
 
     for (int i=FirstFileNumberToAnalyse; i<=LastFileNumberToAnalyse; i++) {
         if (RunsMetaInformation.at(i).RunType == 0) {
-            DoFile(i, 1, 1, 1);
+            DoFile(i, 1, 1, 0);
         }
     }
 }
@@ -386,7 +397,13 @@ int PlotAllMeasurements() {
     c3->cd(11); hCBEnergySum_Stability->Draw("COLZ");
     c3->cd(12); hMesonPhi_Stability->Draw("COLZ");
     c3->cd(13); hMesonTheta_Stability->Draw("COLZ");
-    c3->cd(14); hScalerVSTDCRatio->Draw("COLZ");
+
+    TCanvas *c4 = new TCanvas("TaggerRatio");
+    c4->Divide(2,2);
+    c4->cd(1); hScalerVSTDCRatio_Meson->Draw("COLZ");
+    c4->cd(2); hScalerVSTDCRatio_Tagg->Draw("COLZ");
+    c4->cd(3); hScalerVSScalerRatio_Tagg->Draw("COLZ");
+
 
     return 0;
 }

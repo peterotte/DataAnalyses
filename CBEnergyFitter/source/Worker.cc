@@ -72,7 +72,9 @@ int main(int argc, char **argv) {
     hMesonMassWidthVSFiles = new TH1D("MesonMassWidthVSFiles", "MesonMassWidthVSFiles", 1600,0,1600);
     hDroppedEventsRatio = new TH1D("DroppedEventsRatio", "DroppedEventsRatio", 1600, 0, 1600);
     hTotalEvents = new TH1D("hTotalEvents", "hTotalEvents", 1600, 0, 1600);
-    hScalerVSTDCRatio = new TH2D("hScalerVSTDCRatio", "hScalerVSTDCRatio", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hScalerVSTDCRatio_Meson = new TH2D("hScalerVSTDCRatio_Meson", "hScalerVSTDCRatio_Meson", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hScalerVSTDCRatio_Tagg = new TH2D("hScalerVSTDCRatio_Tagg", "hScalerVSTDCRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hScalerVSScalerRatio_Tagg = new TH2D("hScalerVSScalerRatio_Tagg", "hScalerVSScalerRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
 
     hPIDECalibration = new TH2D("hPIDECalibration", "hPIDECalibration", 1600, 0, 1600, NPIDChs, 0, NPIDChs);
 

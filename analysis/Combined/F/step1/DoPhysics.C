@@ -3,10 +3,24 @@
 #include <cstddef>
 
 const char Str_RootFilesButResults[] = "../step0/output/sumBut.root"; 
-const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; //Photon Flux correction between But/H
-//const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root";     //No Photon Flux correction between But/H
+//const char Str_RootFilesButResults[] = "../step0/output/sumButNoPScale.root";  //Debug: No Scaling of P But
+//const char Str_RootFilesButResults[] = "../step0/output/sumButFPScaled.root";  //Debug: F Pos Bin is scaled
+//const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; //Photon Flux correction between But/H
+const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root";     //No Photon Flux correction between But/H
 const char Str_RootFileBeamPolShape[] = "../../beampolshape/output/BeamPolValues.root";
 const char Str_RootFilesResultsSignal[] = "output/results.root"; 
+
+int Convert1Dinto2D(TH2D *fSampleHisto, TH1D *f1DInputHisto, TH2D &*f2DOutputHisto, char *fName) {
+	printf("Generate: %s", fName);
+	f2DOutputHisto = (TH2D*)fSampleHisto->Clone(fName);
+	for (int i=1; i<=f2DOutputHisto->GetNbinsX(); i++) {
+		for (int k=1; k<=f2DOutputHisto->GetNbinsY(); k++) {
+			f2DOutputHisto->SetBinContent(i, k, f1DInputHisto->GetBinContent(i));
+			f2DOutputHisto->SetBinError(i, k, f1DInputHisto->GetBinError(i));
+		}
+	}
+	printf(".\n");
+}
 
 void DoPhysics() {
 	Char_t Name[256];
@@ -36,18 +50,36 @@ void DoPhysics() {
 	h2BeamPolShape = (TH2D*)gROOT->FindObject("BeamPol2D");
 
 
+	//Prepare 2D histos
+	TH2D *h2PhotonFluxBut, *h2PhotonFluxH;
+	Convert1Dinto2D(h2TempP, h1PhotonFluxBut, h2PhotonFluxBut, "PhotonFluxBut2D");
+	Convert1Dinto2D(h2TempP, h1PhotonFluxH, h2PhotonFluxH, "PhotonFluxH2D");
+
 
 	//Calculate
 	TFile *RootFileHistogramsSignal = new TFile(Str_RootFilesResultsSignal,"RECREATE");
 
 	//Difference in But + and -
+	TH2D *h2FluxButPosBin = (TH2D*)h2PhotonFluxBut->Clone("FluxButPosBin");
+	TH2D *h2FluxButNegBin = (TH2D*)h2PhotonFluxBut->Clone("FluxButNegBin");
+	//Debug purposes
+//	printf("WARNING: Flux for both states altered by hand. This is only for tests.\n");
+//	h2FluxButPosBin->Scale(0.5+0.0008);
+//	h2FluxButNegBin->Scale(0.5-0.0008);
+	h2FluxButPosBin->Scale(0.5);
+	h2FluxButNegBin->Scale(0.5);
+	h2TempP->Divide(h2FluxButPosBin);
+	h2TempM->Divide(h2FluxButNegBin);
+
 	h2TempCopy[0] = (TH2D*)h2TempP->Clone("ButMissingMassSignalDiff");
 	h2TempCopy[0]->Add(h2TempP, h2TempM, -1, 1.);
-	h2TempCopy[0]->Scale(2);
+//	h2TempCopy[0]->Scale(2);
 
 	//Divide by H
 	h2TempCopy[1] = (TH2D*)h2TempCopy[0]->Clone("ButDivH");
 	h2TempCopy[1]->Divide(h2TempH);
+	h2TempCopy[1]->Multiply(h2PhotonFluxH);
+
 
 	//Divide by H, Beamshape of circ. pol. Photons
 	h2TempCopy[2] = (TH2D*)h2TempCopy[1]->Clone("ButDivHDivBeamShape");
@@ -103,7 +135,9 @@ void DoPhysics() {
 
 	//Put photon flux into calculation
 	h2TempCopy[4] = (TH2D*)h2TempCopy[3]->Clone("ButDivHDivPolsFlux");
-	h2TempCopy[4]->Multiply(h2PhotonFluxCorrection2D);
+//	h2TempCopy[4]->Multiply(h2PhotonFluxCorrection2D);
+//	h2TempCopy[4]->Multiply(h2PhotonFluxH);
+//	h2TempCopy[4]->Divide(h2PhotonFluxBut);
 	h2TempCopy[4]->Scale(4.599);
 	
 

@@ -123,7 +123,7 @@ void RescaleH() {
 	}
 
 	//Now Rescale the H-Results individually
-	Scale2D("MissingMassCombinedSignal", hFluxRatio);
+	Scale2D("MissingMassCombinedSignal", hFluxRatio); //This histo is needed in the next step
 	CopyElement("CountNumberOfHistos");
 	CopyElement("hDroppedEvents");
 	Scale1D("TaggerScalerAccum", hFluxRatio);
@@ -132,7 +132,10 @@ void RescaleH() {
 	Scale2D("MissingMassCombinedSignalLTCorrected", hFluxRatio);
 	Scale1D("TaggerScalerAccumLTCorrected", hFluxRatio);
 	Scale1D("PhotonFluxLTCorrectedWOTaggEff", hFluxRatio);
-	Scale1D("PhotonFluxLTCorrected", hFluxRatio);
+//For Debug Reasons, to test a different H-Flux:
+//	printf("WARNING: Flux ratio not adapted by hand.\n");
+//	hFluxRatio->Scale(0.8);
+	Scale1D("PhotonFluxLTCorrected", hFluxRatio);  // This histo ist needed in the next step
 	CopyElement("TaggEffAbsAll");
 
 	RootFileHHistograms_Rescaled->Write();
