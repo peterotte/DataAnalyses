@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm output/*
+rm output/T.txt

@@ -108,6 +108,8 @@ int SaveSpectraAfterToDisc() {
     hTaggEffAbsT->Write();
     hTaggEffAbsF->Write();
     hTaggEffAbsAll->Write();
+    hMesonInvMassVSMissingMass_Prompt_PolP->Write();
+    hMesonInvMassVSMissingMass_Prompt_PolM->Write();
     f->Close();
     printf("INFO: Completed writing histograms to ROOT file.\n");
 

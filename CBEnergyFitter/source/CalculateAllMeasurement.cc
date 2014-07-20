@@ -235,6 +235,26 @@ void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int 
            // hScalerVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hScaler->GetBinError(i+1)/hScaler->GetBinError(36+1));
         }
 
+        //Method 3: Tagg (PromptTDC-BGTDC) / Tagg Scs
+        delete gROOT->FindObject("Divide2");
+        TH1D *hTime1D_BG = hTime2D->ProjectionY("hTime1D_BG",800,950); //150ns Breite
+        TH1D *hTime1D_Prompt = hTime2D->ProjectionY("hTime1D_Prompt",990,1010); //20ns Breite
+        TH1D *hTime1D_Signal = (TH1D*)hTime1D_Prompt->Clone("hTime1D_Signal");
+        hTime1D_Signal->Add(hTime1D_Prompt, hTime1D_BG, 1, -1.*(20./150.));
+
+        //TH1D* hDiff3 = (TH1D*)hTime1D_Signal->Clone("TDCPrompt_VS_Scaler");
+        //hDiff3->Divide(hScaler);
+        hTime1D_Signal->Scale(LiveTimeTagger/LiveTimeExp);
+        for (int i=0; i< NTaggChs; i++) {
+            //hPromptTDCVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hDiff3->GetBinContent(i+1));
+            //hPromptTDCVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hDiff3->GetBinError(i+1));
+
+            hPromptTDCVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hTime1D_Signal->GetBinContent(i+1)/hScaler->GetBinContent(36+1));
+           // hPromptTDCVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hScaler->GetBinError(i+1)/hScaler->GetBinError(36+1));
+        }
+
+
+
 
         // ***************************************************************
 
@@ -403,6 +423,7 @@ int PlotAllMeasurements() {
     c4->cd(1); hScalerVSTDCRatio_Meson->Draw("COLZ");
     c4->cd(2); hScalerVSTDCRatio_Tagg->Draw("COLZ");
     c4->cd(3); hScalerVSScalerRatio_Tagg->Draw("COLZ");
+    c4->cd(4); hPromptTDCVSScalerRatio_Tagg->Draw("COLZ");
 
 
     return 0;

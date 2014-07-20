@@ -497,6 +497,9 @@ int ReadCBConfigurationFile() {
                 RawADCData.CB.Elements.at(AktElementNr).CentralEnergyMEV = -1;
 
                 //Position
+                double TargetShiftValue = 0.;
+                Position2 += TargetShiftValue; //Simulate Target Offset
+                printf("Shift CB Elements by %f cm.\n", TargetShiftValue);
                 RawADCData.CB.Elements.at(AktElementNr).Position.r = TMath::Sqrt( Position0*Position0 + Position1*Position1 + Position2*Position2 );
                 RawADCData.CB.Elements.at(AktElementNr).Position.theta = acos( Position2 / RawADCData.CB.Elements.at(AktElementNr).Position.r );
                 RawADCData.CB.Elements.at(AktElementNr).Position.phi = atan2( Position1, Position0 );

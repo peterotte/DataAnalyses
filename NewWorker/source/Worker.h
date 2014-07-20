@@ -157,7 +157,6 @@ TH2D *hCBTimePrompt_VS_EventID, *hTaggerTimePrompt_VS_EventID;
 TH2D *hTaggerNMultiHits, *hCBNMultiHits, *hPIDNMultiHits; //Number of Multihits per Event before any cut
 TH2D *hTaggerNMultiHitsCuts, *hCBNMultiHitsCuts, *hPIDNMultiHitsCuts; //Number of Multihits per Event after time cuts and calibration
 
-
 #ifdef DO_CBADC3Sums
     TH2D *hCBChADCPart1, *hCBChADCPart2, *hCBChADCPart3; //Raw CB ADC values, pedestal, signal, tail. For debug of ADC delay setting
 #endif
@@ -188,6 +187,8 @@ TH1D *hMesonInvariantMass;
 TH1D *hMesonInvariantMassCorrected;
 TH1D *hMesonInvariantMassAfterCuts;
 TH2D *hMesonInvMassVSMissingMass_Prompt, *hMesonInvMassVSMissingMass_Bg, *hMesonInvMassVSMissingMass_Signal;
+//Zum Nachweis, dass man das freie Proton mit dieser Methode erwischt
+TH2D *hMesonInvMassVSMissingMass_Prompt_PolP, *hMesonInvMassVSMissingMass_Prompt_PolM, *hMesonInvMassVSMissingMass_Pol_Diff;
 TH1D *hTimeMesonTagger;
 TH1D *hNPhotons;
 TH1D *hCBEnergySum, *hCBEnergySumAllEvents, *hCBEnergySumBadEvents; //W/O and with Dropped Events
@@ -215,6 +216,12 @@ TH2D *hEnergyPhoton1VSEnergyPhoton2_Prompt, *hEnergyPhoton1VSEnergyPhoton2_Bg, *
 TH2D *hMissingMassCombinedPromptFP, *hMissingMassCombinedBgFP, *hMissingMassCombinedSignalFP;
 TH2D *hMissingMassCombinedPromptFM, *hMissingMassCombinedBgFM, *hMissingMassCombinedSignalFM;
 TH2D *hMissingMassCombinedSignalLTCorrectedFP, *hMissingMassCombinedSignalLTCorrectedFM;
+
+//F Prime
+TH2D *hMissingMassCombinedPromptFPrimeP, *hMissingMassCombinedBgFPrimeP, *hMissingMassCombinedSignalFPrimeP;
+TH2D *hMissingMassCombinedPromptFPrimeM, *hMissingMassCombinedBgFPrimeM, *hMissingMassCombinedSignalFPrimeM;
+TH2D *hMissingMassCombinedSignalLTCorrectedFPrimeP, *hMissingMassCombinedSignalLTCorrectedFPrimeM;
+
 TH1D *hDroppedEvents; //Counter, how many events have been skipped because of wrong MAMI Source Bit Pattern etc.
 
 //T
@@ -222,10 +229,17 @@ TH2D *hMissingMassCombinedPromptTP, *hMissingMassCombinedBgTP, *hMissingMassComb
 TH2D *hMissingMassCombinedPromptTM, *hMissingMassCombinedBgTM, *hMissingMassCombinedSignalTM;
 TH2D *hMissingMassCombinedSignalLTCorrectedTP, *hMissingMassCombinedSignalLTCorrectedTM;
 
+//T Prime
+TH2D *hMissingMassCombinedPromptTPrimeP, *hMissingMassCombinedBgTPrimeP, *hMissingMassCombinedSignalTPrimeP;
+TH2D *hMissingMassCombinedPromptTPrimeM, *hMissingMassCombinedBgTPrimeM, *hMissingMassCombinedSignalTPrimeM;
+TH2D *hMissingMassCombinedSignalLTCorrectedTPrimeP, *hMissingMassCombinedSignalLTCorrectedTPrimeM;
+
 TH1D *hCountNumberOfHistos;
 
 TH2D *hBeamPol, *hTaggEffAbsT, *hTaggEffAbsF, *hTaggEffAbsAll;
+TH2D *hTaggEffAbsTPrime, *hTaggEffAbsFPrime;
 TH2D *hTargetPolF, *hTargetPolT;
+TH2D *hTargetPolFPrime, *hTargetPolTPrime;
 
 //-----------------------------------------------------------------------------
 // Root files
@@ -328,6 +342,7 @@ int InitCalibHistograms() {
     hPIDNMultiHits = new TH2D("hPIDNMultiHits", "hPIDNMultiHits", 10,0,10, NPIDElements, 0, NPIDElements); //Number of Multihits per Event | Without cuts, raw signal
     hPIDNMultiHitsCuts = new TH2D("hPIDNMultiHitsCuts", "hPIDNMultiHitsCuts", 10,0,10, NPIDElements, 0, NPIDElements);  //Number of Multihits per Event | After calibration and time cuts
     hPIDNHits = new TH1D("PIDNHits", "PIDNHits", 50, 0, 50); //NHits spectra
+
     //PID
     gDirectory->mkdir("PID-CB correclation");
     gDirectory->cd("PID-CB correclation");
@@ -345,9 +360,15 @@ int InitCalibHistograms() {
     hMesonInvariantMass = new TH1D("MesonInvariantMass", "MesonInvariantMass", 250, 0, 250); hMesonInvariantMass->Sumw2();
     hMesonInvariantMassCorrected = new TH1D("MesonInvariantMassCorrected", "MesonInvariantMassCorrected", 250, 0, 250); hMesonInvariantMassCorrected->Sumw2();
     hMesonInvariantMassAfterCuts = new TH1D("MesonInvariantMassAfterCuts", "MesonInvariantMassAfterCuts", 250, 0, 250); hMesonInvariantMassAfterCuts->Sumw2();
-    hMesonInvMassVSMissingMass_Prompt = new TH2D("MesonInvMassVSMissingMass_Prompt", "MesonInvMassVSMissingMass_Prompt", 250, 0, 250, 600, 0, 1200); hMesonInvMassVSMissingMass_Prompt->Sumw2();
-    hMesonInvMassVSMissingMass_Bg = new TH2D("MesonInvMassVSMissingMass_Bg", "MesonInvMassVSMissingMass_Bg", 250, 0, 250, 600, 0, 1200); hMesonInvMassVSMissingMass_Bg->Sumw2();
-    hMesonInvMassVSMissingMass_Signal = new TH2D("MesonInvMassVSMissingMass_Signal", "MesonInvMassVSMissingMass_Signal", 250, 0, 250, 600, 0, 1200); hMesonInvMassVSMissingMass_Signal->Sumw2();
+
+    hMesonInvMassVSMissingMass_Prompt = new TH2D("MesonInvMassVSMissingMass_Prompt", "MesonInvMassVSMissingMass_Prompt", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Prompt->Sumw2();
+    hMesonInvMassVSMissingMass_Bg = new TH2D("MesonInvMassVSMissingMass_Bg", "MesonInvMassVSMissingMass_Bg", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Bg->Sumw2();
+    hMesonInvMassVSMissingMass_Signal = new TH2D("MesonInvMassVSMissingMass_Signal", "MesonInvMassVSMissingMass_Signal", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Signal->Sumw2();
+
+    hMesonInvMassVSMissingMass_Prompt_PolP = new TH2D("hMesonInvMassVSMissingMass_Prompt_PolP", "hMesonInvMassVSMissingMass_Prompt_PolP", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Prompt_PolP->Sumw2();
+    hMesonInvMassVSMissingMass_Prompt_PolM = new TH2D("hMesonInvMassVSMissingMass_Prompt_PolM", "hMesonInvMassVSMissingMass_Prompt_PolM", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Prompt_PolM->Sumw2();
+    hMesonInvMassVSMissingMass_Pol_Diff = new TH2D("hMesonInvMassVSMissingMass_Pol_Diff", "hMesonInvMassVSMissingMass_Pol_Diff", 45, 110, 155, 120, 880, 1000); hMesonInvMassVSMissingMass_Pol_Diff->Sumw2();
+
     hTimeMesonTagger = new TH1D("hTimeMesonTagger", "hTimeMesonTagger", 400, -200, 200);
     hNPhotons = new TH1D("NPhotons", "NPhotons", 20, 0, 20);
     hCBEnergySum = new TH1D("CBEnergySum", "CBEnergySum", 500, 0, 1000); hCBEnergySum->Sumw2();
@@ -395,6 +416,22 @@ int InitCalibHistograms() {
     hMissingMassCombinedBgTM =       new TH2D("MissingMassCombinedBgTM",      "MissingMassCombinedBgTM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgTM->Sumw2();
     hMissingMassCombinedSignalTM =   new TH2D("MissingMassCombinedSignalTM",  "MissingMassCombinedSignalTM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalTM->Sumw2();
 
+    hMissingMassCombinedPromptFPrimeP =   new TH2D("MissingMassCombinedPromptFPrimeP",  "MissingMassCombinedPromptFPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedPromptFPrimeP->Sumw2();
+    hMissingMassCombinedBgFPrimeP =       new TH2D("MissingMassCombinedBgFPrimeP",      "MissingMassCombinedBgFPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgFPrimeP->Sumw2();
+    hMissingMassCombinedSignalFPrimeP =   new TH2D("MissingMassCombinedSignalFPrimeP",  "MissingMassCombinedSignalFPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalFPrimeP->Sumw2();
+
+    hMissingMassCombinedPromptFPrimeM =   new TH2D("MissingMassCombinedPromptFPrimeM",  "MissingMassCombinedPromptFPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedPromptFPrimeM->Sumw2();
+    hMissingMassCombinedBgFPrimeM =       new TH2D("MissingMassCombinedBgFPrimeM",      "MissingMassCombinedBgFPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgFPrimeM->Sumw2();
+    hMissingMassCombinedSignalFPrimeM =   new TH2D("MissingMassCombinedSignalFPrimeM",  "MissingMassCombinedSignalFPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalFPrimeM->Sumw2();
+
+    hMissingMassCombinedPromptTPrimeP =   new TH2D("MissingMassCombinedPromptTPrimeP",  "MissingMassCombinedPromptTPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedPromptTPrimeP->Sumw2();
+    hMissingMassCombinedBgTPrimeP =       new TH2D("MissingMassCombinedBgTPrimeP",      "MissingMassCombinedBgTPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgTPrimeP->Sumw2();
+    hMissingMassCombinedSignalTPrimeP =   new TH2D("MissingMassCombinedSignalTPrimeP",  "MissingMassCombinedSignalTPrimeP", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalTPrimeP->Sumw2();
+
+    hMissingMassCombinedPromptTPrimeM =   new TH2D("MissingMassCombinedPromptTPrimeM",  "MissingMassCombinedPromptTPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedPromptTPrimeM->Sumw2();
+    hMissingMassCombinedBgTPrimeM =       new TH2D("MissingMassCombinedBgTPrimeM",      "MissingMassCombinedBgTPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedBgTPrimeM->Sumw2();
+    hMissingMassCombinedSignalTPrimeM =   new TH2D("MissingMassCombinedSignalTPrimeM",  "MissingMassCombinedSignalTPrimeM", NTaggerElements, 0, NTaggerElements, 18, 0, 180); hMissingMassCombinedSignalTPrimeM->Sumw2();
+
     hMissingMassVsMesonThetaPrompt = new TH2D("hMissingMassVsMesonThetaPrompt", "hMissingMassVsMesonThetaPrompt",   120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaPrompt->Sumw2();
     hMissingMassVsMesonThetaBg =     new TH2D("hMissingMassVsMesonThetaBg",     "hMissingMassVsMesonThetaBg",       120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaBg->Sumw2();
     hMissingMassVsMesonThetaSignal = new TH2D("hMissingMassVsMesonThetaSignal", "hMissingMassVsMesonThetaSignal",   120, 880, 1000, 36, 0, 180); hMissingMassVsMesonThetaSignal->Sumw2();
@@ -430,6 +467,12 @@ int InitCalibHistograms() {
     hTargetPolT = new TH2D("TargetPolT", "TargetPolT", NTaggerElements, 0, NTaggerElements, 200, 0, 1); hTargetPolT->Sumw2();
     hTaggEffAbsT = new TH2D("TaggEffAbsT", "TaggEffAbsT", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsT->Sumw2();
     hTaggEffAbsF = new TH2D("TaggEffAbsF", "TaggEffAbsF", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsF->Sumw2();
+
+    hTargetPolFPrime = new TH2D("TargetPolFPrime", "TargetPolFPrime", NTaggerElements, 0, NTaggerElements, 200, 0, 1); hTargetPolFPrime->Sumw2();
+    hTargetPolTPrime = new TH2D("TargetPolTPrime", "TargetPolTPrime", NTaggerElements, 0, NTaggerElements, 200, 0, 1); hTargetPolTPrime->Sumw2();
+    hTaggEffAbsTPrime = new TH2D("TaggEffAbsTPrime", "TaggEffAbsTPrime", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsTPrime->Sumw2();
+    hTaggEffAbsFPrime = new TH2D("TaggEffAbsFPrime", "TaggEffAbsFPrime", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsFPrime->Sumw2();
+
     hTaggEffAbsAll = new TH2D("TaggEffAbsAll", "TaggEffAbsAll", NTaggerElements, 0, NTaggerElements, 1000, 0, 1); hTaggEffAbsAll->Sumw2(); //with cut on EffHel
 
 

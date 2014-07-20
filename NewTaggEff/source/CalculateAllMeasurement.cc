@@ -54,8 +54,8 @@ int CombineAllMeasurements() {
         Char_t TempStr[1024];
         sprintf(TempStr,"PrevFitTMP%i",k);
         delete gROOT->FindObject(TempStr);
-        TF1 *PrevFitTMP = new TF1(TempStr,"pol0",1,352);
-        PrevFitTMP->SetParameter(0, 0.09);
+        TF1 *PrevFitTMP = new TF1(TempStr,"pol0",50,200);
+        PrevFitTMP->SetParameter(0, 0.1);
         TFitResultPtr MyFitResult = TempHist->Fit(TempStr, "QR0F"); //0 = do not draw, q=quiet, R = respect range, f = special min finder
 
         Double_t MeanTaggEff = 0;
@@ -94,9 +94,9 @@ int CombineAllMeasurements() {
     // Calculate the scale to norm TaggEffMean
     char buffer[1024] = "PrevFitTMPScaleMean";
     delete gROOT->FindObject(buffer);
-    TF1 *PrevFitTMP = new TF1(buffer,"pol0",1,352);
+    TF1 *PrevFitTMP = new TF1(buffer,"pol0",50,200);
     //PrevFitTMP->SetParameter(0, 0.1);
-    TFitResultPtr MyFitResult = hTaggEffMean->Fit(buffer, "QR0F"); //0 = do not draw, q=quiet, R = respect range, f = special min finder
+    TFitResultPtr MyFitResult = hTaggEffMean->Fit(buffer, "QRF"); //0 = do not draw, q=quiet, R = respect range, f = special min finder
 
     Double_t MeanTaggEffAvg = 1;
     Int_t MyFitStatus = MyFitResult; //0 = alles okay, 4 fehler beim Fit, -1 = no data, see: http://root.cern.ch/root/html/TH1.html#TH1:Fit%1

@@ -211,9 +211,9 @@ int Do_PhysicsAnalysis () {
             }
 
 
-//            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
+            if (MyEvent.CBClusters.at(k).IsCharged) { //PID included:
   //          if (MyEvent.CBClusters.at(k).NumberOfCrystals<3) { //PID out
-            if (1==0) { //No cut
+  //          if (1==0) { //No cut
                 MyEvent.CBClusters.erase(MyEvent.CBClusters.begin() + k);
             } else {
                 k++;
@@ -340,17 +340,18 @@ int Do_PhysicsAnalysis () {
                         }
 
                         //D3bug: Do Helicity Bit randomly
-                        RndNumber++;
+                        /*RndNumber++;
                         if (EffHelBeam != 0.) {
                             EffHelBeam = +1;
                             if ((rnd->Rndm(RndNumber))>0.5) EffHelBeam=-1;
                         }
-                        //printf("EffHelBeam: %f %f\n",EffHelBeam, rnd->Rndm(RndNumber));
+                        printf("EffHelBeam: %f %f\n",EffHelBeam, rnd->Rndm(RndNumber));
+                        */
                         //if ( (EffHelBeam == 0) && (RequireBeamHelicityPresent) ) {NRejectedEvents++;} //No longer necessary because faulty files do not get used for F later
 
 
-                        if ( TMath::Abs(MassPion0-vSum.M()) < 200 ) { //200 for tests to see the ful Inv Mass Distribution
-//                        if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) { //Normal
+//                        if ( TMath::Abs(MassPion0-vSum.M()) < 200 ) { //200 for tests to see the ful Inv Mass Distribution
+                        if ( TMath::Abs(MassPion0-vSum.M()) < 20 ) { //Normal
                             //******** Kin Fit Start ******
 
                             TA2CBKinematicFitter* KinFitter;
@@ -444,18 +445,44 @@ int Do_PhysicsAnalysis () {
                                         double ReactionAngle = cos( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
                                         EffHel = EffHelBeam * ReactionAngle;
 
-                                        if (EffHel >= 0.35) {
+                                        if (EffHel >= 0.405) {
                                             hMissingMassCombinedPromptFP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                             hCBEnergySumFP->Fill(CBEnergySum);
-                                        } else if (EffHel <= -0.35) {
+
+                                            if (P4MesonCM.Theta() > (90.*TMath::Pi()/180.) ) {
+                                                hMesonInvMassVSMissingMass_Prompt_PolP->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                            } else {
+                                                hMesonInvMassVSMissingMass_Prompt_PolM->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                            }
+
+                                        } else if (EffHel <= -0.405) {
                                             hMissingMassCombinedPromptFM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                             hCBEnergySumFM->Fill(CBEnergySum);
+
+                                            if (P4MesonCM.Theta() < (90.*TMath::Pi()/180.) ) {
+                                                hMesonInvMassVSMissingMass_Prompt_PolP->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                            } else {
+                                                hMesonInvMassVSMissingMass_Prompt_PolM->Fill(vSumBeforeFit.M(), P4Missing.M());
+                                            }
+                                        }
+                                        // Calculation for T Prime
+                                        ReactionAngle = sin( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
+                                        EffHel = EffHelBeam * ReactionAngle;
+
+                                        if (EffHel >= 0.405) {
+                                            hMissingMassCombinedPromptTPrimeP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolTPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
+                                            hTaggEffAbsTPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                        } else if (EffHel <= -0.405) {
+                                            hMissingMassCombinedPromptTPrimeM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolTPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
+                                            hTaggEffAbsTPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                         }
 
 
@@ -464,18 +491,32 @@ int Do_PhysicsAnalysis () {
                                         ReactionAngle = sin( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
                                         EffHel = ReactionAngle;
 
-                                        if (EffHel >= 0.35) {
+                                        if (EffHel >= 0.405) {
                                             hMissingMassCombinedPromptTP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                             hCBEnergySumTP->Fill(CBEnergySum);
-                                        } else if (EffHel <= -0.35) {
+                                        } else if (EffHel <= -0.405) {
                                             hMissingMassCombinedPromptTM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                             hCBEnergySumTM->Fill(CBEnergySum);
+                                        }
+
+                                        // Calculation for F Prime
+                                        ReactionAngle = cos( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
+                                        EffHel = ReactionAngle;
+
+                                        if (EffHel >= 0.405) {
+                                            hMissingMassCombinedPromptFPrimeP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolFPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
+                                            hTaggEffAbsFPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
+                                        } else if (EffHel <= -0.405) {
+                                            hMissingMassCombinedPromptFPrimeM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolFPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle);
+                                            hTaggEffAbsFPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, 1.);
                                         }
 
                                         //////////////////////////////////////
@@ -505,16 +546,29 @@ int Do_PhysicsAnalysis () {
                                         double ReactionAngle = cos( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
                                         EffHel = EffHelBeam * ReactionAngle;
 
-                                        if (EffHel >= 0.35) {
+                                        if (EffHel >= 0.405) {
                                             hMissingMassCombinedBgFP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
-                                        } else if (EffHel <= -0.35) {
+                                        } else if (EffHel <= -0.405) {
                                             hMissingMassCombinedBgFM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolF->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
 
                                             hTaggEffAbsF->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
+                                        }
+                                        //Calculation for T Prime
+                                        ReactionAngle = sin( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
+                                        EffHel = EffHelBeam * ReactionAngle;
+
+                                        if (EffHel >= 0.405) {
+                                            hMissingMassCombinedBgTPrimeP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolTPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
+                                            hTaggEffAbsTPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
+                                        } else if (EffHel <= -0.405) {
+                                            hMissingMassCombinedBgTPrimeM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolTPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
+                                            hTaggEffAbsTPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
                                         }
 
 
@@ -523,16 +577,30 @@ int Do_PhysicsAnalysis () {
                                         ReactionAngle = sin( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
                                         EffHel = ReactionAngle;
 
-                                        if (EffHel >= 0.35) {
+                                        if (EffHel >= 0.405) {
                                             hMissingMassCombinedBgTP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
-                                        } else if (EffHel <= -0.35) {
+                                        } else if (EffHel <= -0.405) {
                                             hMissingMassCombinedBgTM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
                                             hTargetPolT->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
 
                                             hTaggEffAbsT->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
+                                        }
+
+                                        //Calculation for F Prime
+                                        ReactionAngle = cos( P4MesonCM.Phi() - TMath::Pi()/2 * RunsMetaInformation.at(IndexRunMetaInfomation).TargetNMRSignal * RunsMetaInformation.at(IndexRunMetaInfomation).TargetOrient );
+                                        EffHel = ReactionAngle;
+
+                                        if (EffHel >= 0.405) {
+                                            hMissingMassCombinedBgFPrimeP->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolFPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
+                                            hTaggEffAbsFPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
+                                        } else if (EffHel <= -0.405) {
+                                            hMissingMassCombinedBgFPrimeM->Fill(IncomingPhotonsTaggerCh.at(g), P4MesonCM.Theta()*180/TMath::Pi());
+                                            hTargetPolFPrime->Fill(IncomingPhotonsTaggerCh.at(g), TMath::Abs(RunsMetaInformation.at(IndexRunMetaInfomation).TargetPolDegree) * ReactionAngle, -.1);
+                                            hTaggEffAbsFPrime->Fill(IncomingPhotonsTaggerCh.at(g), RunsMetaInformation.at(IndexRunMetaInfomation).AbsTaggEff, -0.1);
                                         }
 
                                         ////////////////////////////////////////////
@@ -584,8 +652,17 @@ int Do_PhysicsAnalysis () {
     hMissingMassCombinedSignalTP->Add(hMissingMassCombinedPromptTP, hMissingMassCombinedBgTP, 1, -0.1);
     hMissingMassCombinedSignalTM->Add(hMissingMassCombinedPromptTM, hMissingMassCombinedBgTM, 1, -0.1);
 
+    //F Prime
+    hMissingMassCombinedSignalFPrimeP->Add(hMissingMassCombinedPromptFPrimeP, hMissingMassCombinedBgFPrimeP, 1, -0.1);
+    hMissingMassCombinedSignalFPrimeM->Add(hMissingMassCombinedPromptFPrimeM, hMissingMassCombinedBgFPrimeM, 1, -0.1);
+
+    //T Prime
+    hMissingMassCombinedSignalTPrimeP->Add(hMissingMassCombinedPromptTPrimeP, hMissingMassCombinedBgTPrimeP, 1, -0.1);
+    hMissingMassCombinedSignalTPrimeM->Add(hMissingMassCombinedPromptTPrimeM, hMissingMassCombinedBgTPrimeM, 1, -0.1);
+
     //MissingMass VS InvMass
     hMesonInvMassVSMissingMass_Signal->Add(hMesonInvMassVSMissingMass_Prompt, hMesonInvMassVSMissingMass_Bg, 1, -0.1);
+    hMesonInvMassVSMissingMass_Pol_Diff->Add(hMesonInvMassVSMissingMass_Prompt_PolP, hMesonInvMassVSMissingMass_Prompt_PolM, -1, 1);
     //Cluster E VS Cluster Multi
     hCBClusterMulti_VS_Energy_Photon_Signal->Add(hCBClusterMulti_VS_Energy_Photon_Prompt, hCBClusterMulti_VS_Energy_Photon_Bg, 1, -0.1);
     //More

@@ -75,6 +75,7 @@ int main(int argc, char **argv) {
     hScalerVSTDCRatio_Meson = new TH2D("hScalerVSTDCRatio_Meson", "hScalerVSTDCRatio_Meson", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
     hScalerVSTDCRatio_Tagg = new TH2D("hScalerVSTDCRatio_Tagg", "hScalerVSTDCRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
     hScalerVSScalerRatio_Tagg = new TH2D("hScalerVSScalerRatio_Tagg", "hScalerVSScalerRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hPromptTDCVSScalerRatio_Tagg = new TH2D("hPromptTDCVSScalerRatio_Tagg", "hPromptTDCVSScalerRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
 
     hPIDECalibration = new TH2D("hPIDECalibration", "hPIDECalibration", 1600, 0, 1600, NPIDChs, 0, NPIDChs);
 

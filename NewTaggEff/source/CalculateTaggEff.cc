@@ -228,7 +228,8 @@ void TaggEff(Int_t fback1, Int_t ffore, Int_t fback2) {
     for (int i=1;i<=NTaggChs;i++) {
         histTaggEffBgFreeCorrected->SetBinContent(i, 0);
         histTaggEffBgFreeCorrected->SetBinError(i, 0);
-        if ( (histTaggEffBgFree->GetBinContent(i) < (MeanTaggEff*1.6)) && (histTaggEffBgFree->GetBinContent(i) > (MeanTaggEff*0.4)) ) {
+        if ( (histTaggEffBgFree->GetBinContent(i) < (MeanTaggEff*1.2)) && (histTaggEffBgFree->GetBinContent(i) > (MeanTaggEff*0.8)) ) {
+//        if ( (histTaggEffBgFree->GetBinContent(i) < (MeanTaggEff*1.6)) && (histTaggEffBgFree->GetBinContent(i) > (MeanTaggEff*0.4)) ) {
             if ((histTaggEffBgFree->GetBinError(i) / histTaggEffBgFree->GetBinContent(i)) < 1) {
                 histTaggEffBgFreeCorrected->SetBinContent(i, histTaggEffBgFree->GetBinContent(i));
                 histTaggEffBgFreeCorrected->SetBinError(i, histTaggEffBgFree->GetBinError(i));

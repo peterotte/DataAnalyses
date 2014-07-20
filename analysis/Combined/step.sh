@@ -1,10 +1,10 @@
 #!/bin/bash
 
 cd beampolshape
-./step.sh
+#./step.sh
 
 cd ../step0
-./step.sh
+#./step.sh
 
 cd ../F
 ./step.sh
