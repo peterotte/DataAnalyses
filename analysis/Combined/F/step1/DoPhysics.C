@@ -2,11 +2,15 @@
 #include "TMath"
 #include <cstddef>
 
-const char Str_RootFilesButResults[] = "../step0/output/sumBut.root"; 
-//const char Str_RootFilesButResults[] = "../step0/output/sumButNoPScale.root";  //Debug: No Scaling of P But
+//const char Str_RootFilesButResults[] = "../step0/output/sumBut.root"; 
+//const char Str_RootFilesButResults[] = "../step0/output/sumBut1TaggChUsed.root"; //Debug: PhotonSpectra adjusted to 1 TaggerCh
+const char Str_RootFilesButResults[] = "../step0/output/sumButNoPScale.root";  //Debug: No Scaling of P But
 //const char Str_RootFilesButResults[] = "../step0/output/sumButFPScaled.root";  //Debug: F Pos Bin is scaled
-//const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; //Photon Flux correction between But/H
+
 const char Str_RootFilesHResults[]   = "../../step0/output/sumH.root";     //No Photon Flux correction between But/H
+//const char Str_RootFilesHResults[]   = "../step0/output/sumH1TaggChUsed.root"; //Debug: PhotonSpectra adjusted to 1 TaggerCh
+//const char Str_RootFilesHResults[]   = "../step0/output/sumH_Rescaled.root"; //Debug: Photon Flux correction between But/H
+
 const char Str_RootFileBeamPolShape[] = "../../beampolshape/output/BeamPolValues.root";
 const char Str_RootFilesResultsSignal[] = "output/results.root"; 
 
@@ -64,8 +68,8 @@ void DoPhysics() {
 	TH2D *h2FluxButNegBin = (TH2D*)h2PhotonFluxBut->Clone("FluxButNegBin");
 	//Debug purposes
 //	printf("WARNING: Flux for both states altered by hand. This is only for tests.\n");
-//	h2FluxButPosBin->Scale(0.5+0.0008);
-//	h2FluxButNegBin->Scale(0.5-0.0008);
+//	h2FluxButPosBin->Scale(0.5-0.0008);
+//	h2FluxButNegBin->Scale(0.5+0.0008);
 	h2FluxButPosBin->Scale(0.5);
 	h2FluxButNegBin->Scale(0.5);
 	h2TempP->Divide(h2FluxButPosBin);

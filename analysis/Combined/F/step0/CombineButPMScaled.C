@@ -9,11 +9,12 @@ const char Str_RootFilesResultsSignal[] = "output/sumButPScaled.root";
 double ScaleFactor = 1.;
 
 //********************************************************************
+// Photon Flux Correction
 
-// Debug Option: Set Flux Correction to 1 for all channels
+// Debug Option: Set Flux Correction Ratio to 1 for all channels
 int DebugOptionAllChannelsRatioEqual = 0; //0 = Debug disabled, scaling for each ch individually
 
-//Debug Option: Scale Target - Beamtime by Factor. Normal is 1.0
+//Debug Option: Scale Target-Minus Beamtime by this Factor. Normal is 1.0
 int DebugOptionScaleTargetMinusBeamtime = 0; //0 = Debug option disabled
 double ScaleTargetMinusBeamtime = 1.2;
 
@@ -135,7 +136,7 @@ int  CombineButPMScaled() {
 	Scale2D("TaggEffAbsF", hDiff);
 	Scale2D("TaggEffAbsAll", hDiff);
 
-	gROOT->cd();
+	//gROOT->cd();
 	TH1D *hDiffAfter = hP->Clone("PhotonFluxRatioTAfter");
 	hDiffAfter->Divide(hM);
 	hDiffAfter->SetLineColor(kRed);

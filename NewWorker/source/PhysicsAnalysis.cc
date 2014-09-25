@@ -697,6 +697,16 @@ int Do_FinalPhysicsAnalysis () {
     hMissingMassCombinedSignalLTCorrectedTP->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
     hMissingMassCombinedSignalLTCorrectedTM = (TH2D*)hMissingMassCombinedSignalTM->Clone("MissingMassCombinedSignalLTCorrectedTM");
     hMissingMassCombinedSignalLTCorrectedTM->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
+    //F Prime
+    hMissingMassCombinedSignalLTCorrectedFPrimeP = (TH2D*)hMissingMassCombinedSignalFPrimeP->Clone("MissingMassCombinedSignalLTCorrectedFPrimeP");
+    hMissingMassCombinedSignalLTCorrectedFPrimeP->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedFPrimeM = (TH2D*)hMissingMassCombinedSignalFPrimeM->Clone("MissingMassCombinedSignalLTCorrectedFPrimeM");
+    hMissingMassCombinedSignalLTCorrectedFPrimeM->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
+    //T Prime
+    hMissingMassCombinedSignalLTCorrectedTPrimeP = (TH2D*)hMissingMassCombinedSignalTPrimeP->Clone("MissingMassCombinedSignalLTCorrectedTPrimeP");
+    hMissingMassCombinedSignalLTCorrectedTPrimeP->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
+    hMissingMassCombinedSignalLTCorrectedTPrimeM = (TH2D*)hMissingMassCombinedSignalTPrimeM->Clone("MissingMassCombinedSignalLTCorrectedTPrimeM");
+    hMissingMassCombinedSignalLTCorrectedTPrimeM->Scale(1.*GetNotDroppedEventsRatio()/GetExpLiveTimeAccRatio());
 
     //Tagger Livetime correction
     hTaggerScalerAccumLTCorrectedAllEvents = (TH1D*)hTaggerScalerAccum->Clone("TaggerScalerAccumLTCorrectedInclDroppedEvents");

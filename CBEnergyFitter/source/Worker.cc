@@ -72,10 +72,15 @@ int main(int argc, char **argv) {
     hMesonMassWidthVSFiles = new TH1D("MesonMassWidthVSFiles", "MesonMassWidthVSFiles", 1600,0,1600);
     hDroppedEventsRatio = new TH1D("DroppedEventsRatio", "DroppedEventsRatio", 1600, 0, 1600);
     hTotalEvents = new TH1D("hTotalEvents", "hTotalEvents", 1600, 0, 1600);
-    hScalerVSTDCRatio_Meson = new TH2D("hScalerVSTDCRatio_Meson", "hScalerVSTDCRatio_Meson", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
-    hScalerVSTDCRatio_Tagg = new TH2D("hScalerVSTDCRatio_Tagg", "hScalerVSTDCRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
-    hScalerVSScalerRatio_Tagg = new TH2D("hScalerVSScalerRatio_Tagg", "hScalerVSScalerRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
-    hPromptTDCVSScalerRatio_Tagg = new TH2D("hPromptTDCVSScalerRatio_Tagg", "hPromptTDCVSScalerRatio_Tagg", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+
+    hTaggerTest1 = new TH2D("hTaggerTest1", "hTaggerTest1", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest2 = new TH2D("hTaggerTest2", "hTaggerTest2", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest3 = new TH2D("hTaggerTest3", "hTaggerTest3", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest4 = new TH2D("hTaggerTest4", "hTaggerTest4", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest5 = new TH2D("hTaggerTest5", "hTaggerTest5", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest6 = new TH2D("hTaggerTest6", "hTaggerTest6", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest7 = new TH2D("hTaggerTest7", "hTaggerTest7", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
+    hTaggerTest8 = new TH2D("hTaggerTest8", "hTaggerTest8", 1600, 0, 1600, NTaggChs, 0, NTaggChs);
 
     hPIDECalibration = new TH2D("hPIDECalibration", "hPIDECalibration", 1600, 0, 1600, NPIDChs, 0, NPIDChs);
 

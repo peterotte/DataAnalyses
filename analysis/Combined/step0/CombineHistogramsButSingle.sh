@@ -11,5 +11,5 @@ hadd -f output/sumButG.root /datapool/2011_02/outputG/*.root
 hadd -f output/sumButH.root /datapool/2011_02/outputH/*.root
 
 #Jan 2011
-hadd -f output/sumButI.root /datapool/2011_01/outputI/*.root
-hadd -f output/sumButJ.root /datapool/2011_01/outputJ/*.root
+#hadd -f output/sumButI.root /datapool/2011_01/outputI/*.root
+#hadd -f output/sumButJ.root /datapool/2011_01/outputJ/*.root

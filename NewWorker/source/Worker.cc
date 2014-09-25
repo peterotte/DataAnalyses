@@ -98,6 +98,10 @@ int SaveSpectraAfterToDisc() {
     hMissingMassCombinedSignalLTCorrectedFM->Write();
     hMissingMassCombinedSignalLTCorrectedTP->Write();
     hMissingMassCombinedSignalLTCorrectedTM->Write();
+    hMissingMassCombinedSignalLTCorrectedFPrimeP->Write();
+    hMissingMassCombinedSignalLTCorrectedFPrimeM->Write();
+    hMissingMassCombinedSignalLTCorrectedTPrimeP->Write();
+    hMissingMassCombinedSignalLTCorrectedTPrimeM->Write();
     hTaggerScalerAccumLTCorrectedAllEvents->Write();
     hTaggerScalerAccumLTCorrected->Write();
     hTaggerScalerAccumPhotonsLTCorrectedWOTaggEff->Write();
@@ -105,8 +109,12 @@ int SaveSpectraAfterToDisc() {
     hBeamPol->Write();
     hTargetPolF->Write();
     hTargetPolT->Write();
+    hTargetPolFPrime->Write();
+    hTargetPolTPrime->Write();
     hTaggEffAbsT->Write();
     hTaggEffAbsF->Write();
+    hTaggEffAbsTPrime->Write();
+    hTaggEffAbsFPrime->Write();
     hTaggEffAbsAll->Write();
     hMesonInvMassVSMissingMass_Prompt_PolP->Write();
     hMesonInvMassVSMissingMass_Prompt_PolM->Write();

@@ -70,7 +70,7 @@ int CalculateStability(int fFileNumber, TFile *file1, std::string hSource_Str, T
 }
 
 
-void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int fDoPIDADCCalibration) {
+void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int fDoPIDADCCalibration, int fDoStabilityTestsTagger) {
 
     // ***************************************************************
     // Read files
@@ -126,6 +126,11 @@ void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int 
     TH2D *hTime2D = (TH2D*)file1->Get("hTaggerTime");
     if( !hTime2D ) {
         printf("WARNING: File %d: 2D hTaggerTime histogram not found.\n", fFileNumber);
+        return;
+    }
+    TH2D *hMissMass2D = (TH2D*)file1->Get("MissingMassCombinedSignal");
+    if( !hMissMass2D ) {
+        printf("WARNING: File %d: 2D hMissingMassCombinedSignalLTCorrected histogram not found.\n", fFileNumber);
         return;
     }
     TH1D *hMesonInvariantMass1D = (TH1D*)file1->Get("MesonInvariantMass");
@@ -198,62 +203,145 @@ void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int 
     // ***************************************************************
 
 
+
     // ***************************************************************
     // Scaler / TDC Tests
     // ***************************************************************
 
-    if (fDoStabilityTests) {
-        delete gROOT->FindObject("Divide");
-        TH1D* hDiff = (TH1D*)hScaler->Clone("Divide");
 
+    if (fDoStabilityTestsTagger) {
         double LiveTimeTagger = 1.*hLiveTime->GetBinContent(3) / (1.*hLiveTime->GetBinContent(1));
         double LiveTimeExp = 1.*hLiveTime->GetBinContent(2) / (1.*hLiveTime->GetBinContent(1));
+        double NMesons = hMesonInvariantMass1D->Integral(134-20+1,124+20+1);
+
+        //TDC Bg
+        TH1D *hTime1D_BG1 = hTime2D->ProjectionY("hTime1D_BG1",800,950); //150ns Breite
+        TH1D *hTime1D_BG2 = hTime2D->ProjectionY("hTime1D_BG2",1050,1200); //150ns Breite
+        hTime1D_BG1->Sumw2();
+        hTime1D_BG2->Sumw2();
+        TH1D *hTime1D_BG = (TH1D*)hTime1D_BG1->Clone("hTime1D_BG");
+        hTime1D_BG->Add(hTime1D_BG1, hTime1D_BG2);
+        hTime1D_BG->Scale(10./300.);
+
+        //TDC Prompt
+        TH1D *hTime1D_Prompt = hTime2D->ProjectionY("hTime1D_Prompt",990,1010); //20ns Breite
+        hTime1D_Prompt->Sumw2();
+        hTime1D_Prompt->Scale(10./20.);
+
+        //TDC Signal
+        TH1D *hTime1D_Signal = (TH1D*)hTime1D_Prompt->Clone("hTime1D_Signal");
+        hTime1D_Signal->Add(hTime1D_Prompt, hTime1D_BG, 1, -1.);
+
+        //MissMass
+        TH1D *hMissMass1D = hMissMass2D->ProjectionX("TempMissMass", 0, 18); //Theta Abhängigkeit weg
+
+        //Pad 1
+        TH1D *hTest1 = (TH1D*)hScaler->Clone("Test1");
+//        TH1D *hTest1 = (TH1D*)hTime1D_Signal->Clone("Test1");
+        hTest1->Scale(1/NMesons);
+//        hTest1->Divide(hMissMass1D);
+
+        //Pad 2
+        TH1D *hTest2 = (TH1D*)hScaler->Clone("Test2");
+        hTest2->Divide(hTime1D_BG);
+
+        //Pad 3
+        TH1D *hTest3 = (TH1D*)hScaler->Clone("Test3");
+        hTest3->Scale(1/hLiveTime->GetBinContent(3));
+
+        //Pad 4
+        TH1D *hTest4 = (TH1D*)hTime1D_Signal->Clone("Test4");
+        hTest4->Divide(hTime1D_BG);
+
+        //Pad 5
+        TH1D *hTest5 = (TH1D*)hScaler->Clone("Test5");
+        hTest5->Divide(hMissMass1D);
+
+        //Pad 6
+        TH1D *hTest6 = (TH1D*)hMissMass1D->Clone("Test6");
+        hTest6->Scale(1/hMissMass1D->GetBinContent(36+1));
+
+        //Pad 7
+                TH1D *hTest7 = (TH1D*)hScaler->Clone("Test7");
+                hTest7->Divide(hTime1D_Signal);
+        //TH1D *hTest7 = (TH1D*)hTime1D_Signal->Clone("Test7");
+        //hTest7->Scale(1/hTime1D_Signal->GetBinContent(36+1));
+
+        //Pad 8
+        TH1D *hTest8 = (TH1D*)hScaler->Clone("Test8");
+        hTest8->Scale(1/hScaler->GetBinContent(36+1));
+/*
+        TH1D *hTimeSignalDivPrompt = (TH1D*)hTime1D_Signal->Clone("hTimeSignalDivPrompt");
+
+        //delete gROOT->FindObject("Divide2");
+
+        TH1D* hDiff = (TH1D*)hScaler->Clone("Divide");
 
         //Method 2: Tagg Sc / NMesons
-        double NMesons = hMesonInvariantMass1D->Integral(134-20+1,124+20+1);
         hDiff->Scale(1./NMesons);
         hDiff->Scale(1.*LiveTimeExp/LiveTimeTagger);
 
-        for (int i=0; i< NTaggChs; i++) {
-            hScalerVSTDCRatio_Meson->SetBinContent(fFileNumber+1, i+1, hDiff->GetBinContent(i+1));
-            hScalerVSTDCRatio_Meson->SetBinError(fFileNumber+1, i+1, hDiff->GetBinError(i+1));
-        }
 
 
         //Method 1: Tagg Sc / Tagg TDCs
-        delete gROOT->FindObject("Divide2");
         TH1D* hDiff2 = (TH1D*)hScaler->Clone("Divide2");
         TH1D *hTime1D = hTime2D->ProjectionY("Time1D",700,950);
+//        TH1D *hTime1D = hTime2D->ProjectionY("Time1D",990,1010);
 
         hDiff2->Divide(hTime1D);
-        hDiff2->Scale(LiveTimeExp/LiveTimeTagger); //TotalUsedEvents
-        for (int i=0; i< NTaggChs; i++) {
-            hScalerVSTDCRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hDiff2->GetBinContent(i+1));
-            hScalerVSTDCRatio_Tagg->SetBinError(fFileNumber+1, i+1, hDiff2->GetBinError(i+1));
+        //hDiff2->Scale(LiveTimeExp/LiveTimeTagger); //TotalUsedEvents
 
-            hScalerVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hScaler->GetBinContent(i+1)/hScaler->GetBinContent(36+1));
-           // hScalerVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hScaler->GetBinError(i+1)/hScaler->GetBinError(36+1));
-        }
+        hTimeSignalDivPrompt->Divide(hTime1D_Prompt);
 
-        //Method 3: Tagg (PromptTDC-BGTDC) / Tagg Scs
-        delete gROOT->FindObject("Divide2");
-        TH1D *hTime1D_BG = hTime2D->ProjectionY("hTime1D_BG",800,950); //150ns Breite
-        TH1D *hTime1D_Prompt = hTime2D->ProjectionY("hTime1D_Prompt",990,1010); //20ns Breite
-        TH1D *hTime1D_Signal = (TH1D*)hTime1D_Prompt->Clone("hTime1D_Signal");
-        hTime1D_Signal->Add(hTime1D_Prompt, hTime1D_BG, 1, -1.*(20./150.));
+
+        delete gROOT->FindObject("TaggScVSTDCSignal");
+        TH1D *hDiff4 = (TH1D*)hScaler->Clone("TaggScVSTDCSignal");
+        hDiff4->Divide(hTime1D_Signal);
+
 
         //TH1D* hDiff3 = (TH1D*)hTime1D_Signal->Clone("TDCPrompt_VS_Scaler");
         //hDiff3->Divide(hScaler);
-        hTime1D_Signal->Scale(LiveTimeTagger/LiveTimeExp);
+        //hTime1D_Signal->Scale(LiveTimeTagger/LiveTimeExp);
+
+
+        //Method 4: hScalerVSMesonCh
+        delete gROOT->FindObject("Divide3");
+        TH1D* hDiff3 = (TH1D*)hScaler->Clone("Divide3");
+        hDiff3->Divide(hMissMass1D);
+
+        TH1D *hTDCSignalVSMeson = (TH1D*)hTime1D_Signal->Clone("hTDCSignalVSMeson");
+        hTDCSignalVSMeson->Divide(hMissMass1D);
+*/
         for (int i=0; i< NTaggChs; i++) {
-            //hPromptTDCVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hDiff3->GetBinContent(i+1));
-            //hPromptTDCVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hDiff3->GetBinError(i+1));
+            hTaggerTest1->SetBinContent(fFileNumber+1, i+1, hTest1->GetBinContent(i+1));
+            hTaggerTest1->SetBinError(fFileNumber+1, i+1, hTest1->GetBinError(i+1));
 
-            hPromptTDCVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, i+1, hTime1D_Signal->GetBinContent(i+1)/hScaler->GetBinContent(36+1));
-           // hPromptTDCVSScalerRatio_Tagg->SetBinError(fFileNumber+1, i+1, hScaler->GetBinError(i+1)/hScaler->GetBinError(36+1));
+            hTaggerTest2->SetBinContent(fFileNumber+1, i+1, hTest2->GetBinContent(i+1));
+            hTaggerTest2->SetBinError(fFileNumber+1, i+1, hTest2->GetBinError(i+1));
+
+            hTaggerTest3->SetBinContent(fFileNumber+1, i+1, hTest3->GetBinContent(i+1));
+            hTaggerTest3->SetBinError(fFileNumber+1, i+1, hTest3->GetBinError(i+1));
+
+            hTaggerTest4->SetBinContent(fFileNumber+1, i+1, hTest4->GetBinContent(i+1));
+            hTaggerTest4->SetBinError(fFileNumber+1, i+1, hTest4->GetBinError(i+1));
+
+            hTaggerTest5->SetBinContent(fFileNumber+1, i+1, hTest5->GetBinContent(i+1));
+            hTaggerTest5->SetBinError(fFileNumber+1, i+1, hTest5->GetBinError(i+1));
+
+            hTaggerTest6->SetBinContent(fFileNumber+1, i+1, hTest6->GetBinContent(i+1));
+            hTaggerTest6->SetBinError(fFileNumber+1, i+1, hTest6->GetBinError(i+1));
+
+            hTaggerTest7->SetBinContent(fFileNumber+1, i+1, hTest7->GetBinContent(i+1));
+            hTaggerTest7->SetBinError(fFileNumber+1, i+1, hTest7->GetBinError(i+1));
+
+            hTaggerTest8->SetBinContent(fFileNumber+1, i+1, hTest8->GetBinContent(i+1));
+            hTaggerTest8->SetBinError(fFileNumber+1, i+1, hTest8->GetBinError(i+1));
         }
+//        hScalerVSScalerRatio_Tagg->SetBinContent(fFileNumber+1, 300, hLiveTime->GetBinContent(3) ); //Live Tagger
 
+    }
 
+    if (fDoStabilityTests) {
 
 
         // ***************************************************************
@@ -374,7 +462,7 @@ void DoAllFiles() {
 
     for (int i=FirstFileNumberToAnalyse; i<=LastFileNumberToAnalyse; i++) {
         if (RunsMetaInformation.at(i).RunType == 0) {
-            DoFile(i, 1, 1, 0);
+            DoFile(i, 0, 0, 0, 1); //void DoFile(int fFileNumber, int fDoCBEnergyScaling, int fDoStabilityTests, int fDoPIDADCCalibration, int fDoStabilityTestsTagger
         }
     }
 }
@@ -419,11 +507,15 @@ int PlotAllMeasurements() {
     c3->cd(13); hMesonTheta_Stability->Draw("COLZ");
 
     TCanvas *c4 = new TCanvas("TaggerRatio");
-    c4->Divide(2,2);
-    c4->cd(1); hScalerVSTDCRatio_Meson->Draw("COLZ");
-    c4->cd(2); hScalerVSTDCRatio_Tagg->Draw("COLZ");
-    c4->cd(3); hScalerVSScalerRatio_Tagg->Draw("COLZ");
-    c4->cd(4); hPromptTDCVSScalerRatio_Tagg->Draw("COLZ");
+    c4->Divide(4,2);
+    c4->cd(1); hTaggerTest1->Draw("COLZ");
+    c4->cd(2); hTaggerTest2->Draw("COLZ");
+    c4->cd(3); hTaggerTest3->Draw("COLZ");
+    c4->cd(4); hTaggerTest4->Draw("COLZ");
+    c4->cd(5); hTaggerTest5->Draw("COLZ");
+    c4->cd(6); hTaggerTest6->Draw("COLZ");
+    c4->cd(7); hTaggerTest7->Draw("COLZ");
+    c4->cd(8); hTaggerTest8->Draw("COLZ");
 
 
     return 0;

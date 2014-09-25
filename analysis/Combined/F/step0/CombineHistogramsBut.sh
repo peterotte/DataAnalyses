@@ -19,4 +19,6 @@ hadd -f output/sumButM.root ../../step0/output/sumButC.root ../../step0/output/s
 root -l -b -q CombineButPMScaled.C
 
 hadd -f output/sumBut.root output/sumButPScaled.root output/sumButM.root
+
+#Debug: N_Photons(But+) nicht an N_Photons(But-) anpassen
 hadd -f output/sumButNoPScale.root output/sumButP.root output/sumButM.root

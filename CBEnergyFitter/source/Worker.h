@@ -31,7 +31,7 @@ TH1D *hMesonMassCenterVSFiles, *hMesonMassWidthVSFiles;
 TH1D *hDroppedEventsRatio;
 TH1D *hTotalEvents;
 
-TH2D *hScalerVSTDCRatio_Meson, *hScalerVSTDCRatio_Tagg, *hScalerVSScalerRatio_Tagg, *hPromptTDCVSScalerRatio_Tagg;
+TH2D *hTaggerTest1, *hTaggerTest2, *hTaggerTest3, *hTaggerTest4, *hTaggerTest5, *hTaggerTest6, *hTaggerTest7, *hTaggerTest8;
 
 TH2D *hPIDECalibration;
 
